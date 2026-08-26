@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ailə Xərc İzləmə PWA</title>
+    <meta name="theme-color" content="#1A365D">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFpbMO9IFjJmXJjIMSwemzJmW3JOSIsCiAgInNob3J0X25hbWUiOiAiWMmXcmMgxLB6bMmJbcmyIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjRjdGQUZDIiwKICAidGhlbWVfY29sb3IiOiAiIzFBMzY1RCIKfQ==">
+    <style>
+        :root {
+            --primary: #2B6CB0;
+            --primary-dark: #1A365D;
+            --bg: #F7FAFC;
+            --card-bg: #FFFFFF;
+            --text: #2D3748;
+            --text-muted: #718096;
+            --danger: #E53E3E;
+            --success: #38A169;
+            --border: #E2E8F0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 75px; -webkit-tap-highlight-color: transparent; }
+        header { background: var(--primary-dark); color: white; padding: 12px 16px; text-align: center; font-weight: 700; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; }
+        
+        .user-profile { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+        .user-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid white; }
+
+        .container { padding: 15px; max-width: 520px; margin: auto; }
+        .card { background: var(--card-bg); border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid var(--border); }
+        .card h3 { font-size: 1rem; color: var(--primary-dark); margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #4A5568; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #CBD5E0; border-radius: 10px; font-size: 0.95rem; outline: none; background: #FFF; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15); }
+
+        .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
+        .btn:active { background: #2B6CB0; }
+        .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 8px 12px; }
+        .btn-cancel { background: #A0AEC0; margin-top: 8px; display: none; }
+
+        .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .kpi-card { background: white; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border); }
+        .kpi-card .val { font-size: 1.3rem; font-weight: 800; color: var(--primary-dark); margin-top: 6px; }
+        .kpi-card.balance { background: #E6FFFA; border-color: #B2F5EA; }
+        .kpi-card.balance .val { color: #234E52; }
+
+        .balance-box { background: #EBF8FF; border: 1px solid #BEE3F8; border-radius: 12px; padding: 14px; margin-top: 10px; text-align: center; }
+        .balance-box .title { font-size: 0.8rem; color: #2B6CB0; font-weight: 700; margin-bottom: 4px; }
+        .balance-box .val { font-size: 1.5rem; font-weight: 800; color: #2C5282; }
+
+        .progress-bar-bg { background: #EDF2F7; border-radius: 8px; height: 8px; width: 100%; overflow: hidden; margin-top: 6px; }
+        .progress-bar-fill { background: var(--primary); height: 100%; border-radius: 8px; }
+
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid var(--border); height: 65px; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; }
+        .nav-item.active { color: var(--primary); font-weight: 700; }
+        .nav-item span { font-size: 1.3rem; margin-bottom: 3px; }
+
+        .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 12px 0; }
+        .person-tag { font-size: 0.75rem; background: #EBF8FF; color: #2B6CB0; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
+        .amount-tag { font-weight: 700; color: var(--danger); font-size: 1rem; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .action-btn { background: none; border: none; font-size: 0.8rem; cursor: pointer; padding: 4px 6px; }
+        .edit-btn { color: #3182CE; }
+        .delete-btn { color: var(--danger); }
+        
+        #auth-overlay { position: fixed; inset: 0; background: rgba(26, 54, 93, 0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .auth-card { background: white; padding: 24px; border-radius: 16px; text-align: center; width: 100%; max-width: 360px; }
+    </style>
+</head>
+<body>
+
+<!-- GOOGLE LOGIN MODAL -->
+<div id="auth-overlay">
+    <div class="auth-card">
+        <h2 style="color: var(--primary-dark); margin-bottom: 8px;">Ailə Xərc İzləmə</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Daxil olmaq və məlumatları sinxronlaşdırmaq üçün Google hesabınızla giriş edin.</p>
+        <button id="btn-login" class="btn btn-google">
+            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.78c-.19-.53-.3-1.1-.3-1.78s.11-1.25.3-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
+            Google ilə Giriş Et
+        </button>
+    </div>
+</div>
+
+<header>
+    <span>📱 Xərc İzləmə</span>
+    <div class="user-profile" id="user-profile" style="display:none;">
+        <img id="user-img" class="user-avatar" src="" alt="User">
+        <span id="user-name"></span>
+        <button id="btn-logout" class="action-btn" style="color: white; margin-left: 5px;">🚪</button>
+    </div>
+</header>
+
+<div class="container">
+    <!-- TAB 1: DAXİLETMƏ -->
+    <div id="tab-add" class="tab-content active">
+        <div class="card">
+            <h3>💵 Başlanğıc Balans / Büdcə</h3>
+            <div class="form-group">
+                <label>Cari Balansı Daxil Et (₼)</label>
+                <input type="number" id="main-budget-input" step="0.01" placeholder="Məsələn: 1000.00">
+            </div>
+            <div class="balance-box">
+                <div class="title">⚡ Cari Qalan Balansınız</div>
+                <div class="val" id="main-current-balance">0.00 ₼</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 id="form-title">➕ Yeni Xərc Əlavə Et</h3>
+            <form id="expense-form">
+                <input type="hidden" id="edit-doc-id">
+                <div class="form-group">
+                    <label>📅 Tarix</label>
+                    <input type="date" id="exp-date" required>
+                </div>
+                <div class="form-group">
+                    <label>👤 Şəxs</label>
+                    <select id="exp-person" required>
+                        <option value="👤 Javid">👤 Javid</option>
+                        <option value="👩‍💼 Turanə">👩‍💼 Turanə</option>
+                        <option value="🧑 Kənan">🧑 Kənan</option>
+                        <option value="👩 Validə">👩 Validə</option>
+                        <option value="👧 Könül">👧 Könül</option>
+                        <option value="🏠 Ümumi ailə">🏠 Ümumi ailə</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>💰 Məbləğ (₼)</label>
+                    <input type="number" step="0.01" id="exp-amount" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>🏷️ Kateqoriya</label>
+                    <select id="exp-category" required>
+                        <option value="🛒 Ərzaq / Market">🛒 Ərzaq / Market</option>
+                        <option value="⚡ Kommunal (İşıq, Qaz, Su)">⚡ Kommunal (İşıq, Qaz, Su)</option>
+                        <option value="🚕 Nəqliyyat / Taksi / Yanacaq">🚕 Nəqliyyat / Taksi / Yanacaq</option>
+                        <option value="📱 Mobil / İnternet / TV">📱 Mobil / İnternet / TV</option>
+                        <option value="☕ Restoran / Kafe / Çatdırılma">☕ Restoran / Kafe / Çatdırılma</option>
+                        <option value="💊 Sağlamlıq / Aptek">💊 Sağlamlıq / Aptek</option>
+                        <option value="👔 Geyim / Şəxsi Qayğı">👔 Geyim / Şəxsi Qayğı</option>
+                        <option value="🏠 Ev / Təmir / Məişət">🏠 Ev / Təmir / Məişət</option>
+                        <option value="🎮 Əyləncə / Asudə Vaxt">🎮 Əyləncə / Asudə Vaxt</option>
+                        <option value="🎓 Təhsil / İT / Kitab">🎓 Təhsil / İT / Kitab</option>
+                        <option value="📦 Digər Xərclər">📦 Digər Xərclər</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>💳 Ödəniş Üsulu</label>
+                    <select id="exp-pay" required>
+                        <option value="💳 Kart">💳 Kart</option>
+                        <option value="💵 Nəqd">💵 Nəqd</option>
+                        <option value="📲 Mobil Köçürmə">📲 Mobil Köçürmə</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📝 Qeyd</label>
+                    <input type="text" id="exp-note" placeholder="Məsələn: Bravo market">
+                </div>
+                <button type="submit" id="submit-btn" class="btn">Əlavə Et</button>
+                <button type="button" id="cancel-edit-btn" class="btn btn-cancel" onclick="resetForm()">İmtina Et</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TAB 2: ANALİTİKA -->
+    <div id="tab-analytics" class="tab-content">
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div style="font-size:0.75rem; color:var(--text-muted);">💸 Ümumi Xərc</div>
+                <div class="val" id="kpi-total">0.00 ₼</div>
+            </div>
+            <div class="kpi-card balance">
+                <div style="font-size:0.75rem; color:#234E52;">✅ Qalan Balans</div>
+                <div class="val" id="kpi-balance">0.00 ₼</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>👥 Şəxslər üzrə Xərc</h3>
+            <div id="person-summary"></div>
+        </div>
+
+        <div class="card">
+            <h3>🗂️ Kateqoriyalar üzrə Xərc</h3>
+            <div id="category-summary"></div>
+        </div>
+    </div>
+
+    <!-- TAB 3: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
+    <div id="tab-history" class="tab-content">
+        <div class="card">
+            <h3>💾 Backup / Yedəkləmə</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin.</p>
+            <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
+        </div>
+
+        <div class="card">
+            <h3>📜 Əməliyyat Tarixçəsi</h3>
+            <div id="history-list"></div>
+        </div>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <div class="nav-item active" onclick="switchTab('add', this)">
+        <span>➕</span> Düzəliş
+    </div>
+    <div class="nav-item" onclick="switchTab('analytics', this)">
+        <span>📊</span> Analitika
+    </div>
+    <div class="nav-item" onclick="switchTab('history', this)">
+        <span>📜</span> Tarixçə
+    </div>
+</div>
+
+<!-- Firebase SDK v10 Modular -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+        getAuth, 
+        signInWithPopup, 
+        GoogleAuthProvider, 
+        signOut, 
+        onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+        getFirestore, 
+        collection, 
+        addDoc, 
+        onSnapshot, 
+        deleteDoc, 
+        doc, 
+        setDoc,
+        updateDoc,
+        enableIndexedDbPersistence 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAXTdMzt9pcWqwurrZRPZKpmO2i3ssCdmU",
+        authDomain: "moneycontrol-b3318.firebaseapp.com",
+        databaseURL: "https://moneycontrol-b3318-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "moneycontrol-b3318",
+        storageBucket: "moneycontrol-b3318.firebasestorage.app",
+        messagingSenderId: "1024118327948",
+        appId: "1:1024118327948:web:e89a1bcd534a08aafa49a9",
+        measurementId: "G-BHZLQJMZFN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    enableIndexedDbPersistence(db).catch(() => {});
+
+    let currentUser = null;
+    let expenses = [];
+    let budget = 0;
+
+    const authOverlay = document.getElementById('auth-overlay');
+    const userProfile = document.getElementById('user-profile');
+    const userImg = document.getElementById('user-img');
+    const userName = document.getElementById('user-name');
+    const budgetInput = document.getElementById('main-budget-input');
+    const expenseForm = document.getElementById('expense-form');
+    const dateInput = document.getElementById('exp-date');
+
+    dateInput.value = new Date().toISOString().split('T')[0];
+
+    // GOOGLE LOGIN / LOGOUT
+    document.getElementById('btn-login').addEventListener('click', async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (err) {
+            alert("Giriş zamanı xəta baş verdi: " + err.message);
+        }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+        signOut(auth);
+    });
+
+    // AUTH STATE LISTENER
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            authOverlay.style.display = 'none';
+            userProfile.style.display = 'flex';
+            userImg.src = user.photoURL || 'https://via.placeholder.com/28';
+            userName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'İstifadəçi';
+            initAppListeners();
+        } else {
+            currentUser = null;
+            authOverlay.style.display = 'flex';
+            userProfile.style.display = 'none';
+        }
+    });
+
+    function initAppListeners() {
+        onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
+            if (docSnap.exists()) {
+                budget = docSnap.data().amount || 0;
+                budgetInput.value = budget || '';
+                renderAnalytics();
+            }
+        });
+
+        onSnapshot(collection(db, "expenses"), (snapshot) => {
+            expenses = [];
+            snapshot.forEach((doc) => {
+                expenses.push({ id: doc.id, ...doc.data() });
+            });
+            expenses.sort((a, b) => b.createdAt - a.createdAt);
+            renderAll();
+        });
+    }
+
+    budgetInput.addEventListener('change', async (e) => {
+        const val = parseFloat(e.target.value) || 0;
+        await setDoc(doc(db, "settings", "budget"), { amount: val });
+    });
+
+    // Form Submit
+    expenseForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submit-btn');
+        const editId = document.getElementById('edit-doc-id').value;
+        submitBtn.disabled = true;
+
+        const expData = {
+            date: dateInput.value,
+            person: document.getElementById('exp-person').value,
+            amount: parseFloat(document.getElementById('exp-amount').value),
+            category: document.getElementById('exp-category').value,
+            pay: document.getElementById('exp-pay').value,
+            note: document.getElementById('exp-note').value,
+            createdBy: currentUser ? currentUser.email : 'Naməlum',
+            createdAt: Date.now()
+        };
+
+        try {
+            if (editId) {
+                await updateDoc(doc(db, "expenses", editId), expData);
+            } else {
+                await addDoc(collection(db, "expenses"), expData);
+            }
+            resetForm();
+        } catch (err) {
+            alert('Xəta: ' + err.message);
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    window.resetForm = function() {
+        document.getElementById('edit-doc-id').value = '';
+        document.getElementById('exp-amount').value = '';
+        document.getElementById('exp-note').value = '';
+        document.getElementById('form-title').innerText = '➕ Yeni Xərc Əlavə Et';
+        document.getElementById('submit-btn').innerText = 'Əlavə Et';
+        document.getElementById('cancel-edit-btn').style.display = 'none';
+        dateInput.value = new Date().toISOString().split('T')[0];
+    };
+
+    window.editExpense = function(id) {
+        const exp = expenses.find(x => x.id === id);
+        if (!exp) return;
+
+        document.getElementById('edit-doc-id').value = exp.id;
+        dateInput.value = exp.date || new Date().toISOString().split('T')[0];
+        document.getElementById('exp-person').value = exp.person;
+        document.getElementById('exp-amount').value = exp.amount;
+        document.getElementById('exp-category').value = exp.category;
+        document.getElementById('exp-pay').value = exp.pay;
+        document.getElementById('exp-note').value = exp.note || '';
+
+        document.getElementById('form-title').innerText = '✏️ Xərci Redaktə Et';
+        document.getElementById('submit-btn').innerText = 'Yenilə';
+        document.getElementById('cancel-edit-btn').style.display = 'block';
+        switchTab('add', document.querySelectorAll('.nav-item')[0]);
+    };
+
+    window.deleteExpense = async function(id) {
+        if (confirm('Bu xərci silmək istədiyinizdən əminsiniz?')) {
+            await deleteDoc(doc(db, "expenses", id));
+        }
+    };
+
+    // JSON EXPORT
+    document.getElementById('btn-export').addEventListener('click', () => {
+        const backupData = {
+            budget: budget,
+            expenses: expenses,
+            exportDate: new Date().toISOString()
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `xerc_backup_${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    });
+
+    window.switchTab = function(tabName, el) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.add('active');
+        if (el) el.classList.add('active');
+        renderAll();
+    };
+
+    function renderAnalytics() {
+        const total = expenses.reduce((sum, item) => sum + item.amount, 0);
+        const currentBalance = budget - total;
+
+        document.getElementById('kpi-total').innerText = total.toFixed(2) + ' ₼';
+        document.getElementById('kpi-balance').innerText = currentBalance.toFixed(2) + ' ₼';
+        document.getElementById('main-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
+
+        const pSummary = {};
+        expenses.forEach(x => { pSummary[x.person] = (pSummary[x.person] || 0) + x.amount; });
+        let pHTML = '';
+        for (let p in pSummary) {
+            const pct = total > 0 ? ((pSummary[p] / total) * 100).toFixed(1) : 0;
+            pHTML += `
+            <div style="margin-bottom: 10px;">
+                <div class="history-item" style="border:none; padding:4px 0;">
+                    <span>${p}</span>
+                    <strong>${pSummary[p].toFixed(2)} ₼ (${pct}%)</strong>
+                </div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%;"></div></div>
+            </div>`;
+        }
+        document.getElementById('person-summary').innerHTML = pHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
+
+        const cSummary = {};
+        expenses.forEach(x => { cSummary[x.category] = (cSummary[x.category] || 0) + x.amount; });
+        let cHTML = '';
+        for (let c in cSummary) {
+            const pct = total > 0 ? ((cSummary[c] / total) * 100).toFixed(1) : 0;
+            cHTML += `
+            <div style="margin-bottom: 10px;">
+                <div class="history-item" style="border:none; padding:4px 0;">
+                    <span>${c}</span>
+                    <strong>${cSummary[c].toFixed(2)} ₼ (${pct}%)</strong>
+                </div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%; background:#4299E1;"></div></div>
+            </div>`;
+        }
+        document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
+    }
+
+    function renderHistory() {
+        let hHTML = '';
+        expenses.forEach(x => {
+            hHTML += `
+            <div class="history-item">
+                <div>
+                    <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
+                        Tarix: ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''}
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="amount-tag">-${x.amount.toFixed(2)} ₼</div>
+                    <div>
+                        <button onclick="editExpense('${x.id}')" class="action-btn edit-btn">✏️</button>
+                        <button onclick="deleteExpense('${x.id}')" class="action-btn delete-btn">🗑️</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+        document.getElementById('history-list').innerHTML = hHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib.</p>';
+    }
+
+    function renderAll() {
+        renderAnalytics();
+        renderHistory();
+    }
+</script>
+</body>
+</html>
