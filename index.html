@@ -37,7 +37,7 @@
 
         .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
         .btn:active { background: #2B6CB0; }
-        .btn:disabled { background: #A0AEC0; cursor: not-allowed; }
+        .btn:disabled { background: #A0AEC0; cursor: not-allowed; opacity: 0.7; }
         .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 8px 12px; }
         .btn-cancel { background: #A0AEC0; margin-top: 8px; display: none; }
@@ -305,6 +305,7 @@
     const expenseForm = document.getElementById('expense-form');
     const expenseAmountInput = document.getElementById('exp-amount');
     const dateInput = document.getElementById('exp-date');
+    const submitBtn = document.getElementById('submit-btn');
 
     dateInput.value = new Date().toISOString().split('T')[0];
 
@@ -312,6 +313,12 @@
         input.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9.]/g, '');
         });
+    });
+
+    // İstənilən input və ya select dəyişdikdə düymənin kilidini avtomatik açan qoruyucu
+    expenseForm.querySelectorAll('input, select').forEach(element => {
+        element.addEventListener('input', () => { if(submitBtn.disabled) submitBtn.disabled = false; });
+        element.addEventListener('change', () => { if(submitBtn.disabled) submitBtn.disabled = false; });
     });
 
     document.getElementById('btn-login').addEventListener('click', async () => {
@@ -366,7 +373,6 @@
         await setDoc(doc(db, "settings", "budget"), { amount: val });
     });
 
-    // Qətiyyən donmamaq üçün optimallaşdırılmış Submit funksiyası
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -374,7 +380,6 @@
             navigator.vibrate(40);
         }
 
-        const submitBtn = document.getElementById('submit-btn');
         const editId = document.getElementById('edit-doc-id').value;
         submitBtn.disabled = true;
 
@@ -400,7 +405,6 @@
         } catch (err) {
             alert('Xəta baş verdi: ' + err.message);
         } finally {
-            // Hər hansı xəta olsa belə düyməni dərhal işlək vəziyyətə gətiririk
             submitBtn.disabled = false;
         }
     });
@@ -410,8 +414,8 @@
         document.getElementById('exp-amount').value = '';
         document.getElementById('exp-note').value = '';
         document.getElementById('form-title').innerText = '➕ Yeni Xərc Əlavə Et';
-        document.getElementById('submit-btn').innerText = 'Əlavə Et';
-        document.getElementById('submit-btn').disabled = false;
+        submitBtn.innerText = 'Əlavə Et';
+        submitBtn.disabled = false;
         document.getElementById('cancel-edit-btn').style.display = 'none';
         dateInput.value = new Date().toISOString().split('T')[0];
     };
@@ -429,8 +433,8 @@
         document.getElementById('exp-note').value = exp.note || '';
 
         document.getElementById('form-title').innerText = '✏️ Xərci Redaktə Et';
-        document.getElementById('submit-btn').innerText = 'Yenilə';
-        document.getElementById('submit-btn').disabled = false;
+        submitBtn.innerText = 'Yenilə';
+        submitBtn.disabled = false;
         document.getElementById('cancel-edit-btn').style.display = 'block';
         switchTab('add', document.querySelectorAll('.nav-item')[1]);
     };
