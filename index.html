@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money Conrtol PWA</title>
+    <title>Money Control PWA</title>
     <meta name="theme-color" content="#1A365D">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFpbMO9IFjJmXJjIMSwemzJmW3JOSIsCiAgInNob3J0X25hbWUiOiAiWMmXcmMgxLB6bMmJbcmyIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjRjdGQUZDIiwKICAidGhlbWVfY29sb3IiOiAiIzFBMzY1RCIKfQ==">
     <style>
@@ -36,7 +36,7 @@
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15); }
 
         .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
-        .btn:active { background: #2B6CB0; }
+        .btn:active { background: #1A365D; transform: scale(0.98); }
         .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 8px 12px; }
         .btn-cancel { background: #A0AEC0; margin-top: 8px; display: none; }
@@ -104,7 +104,7 @@
             <h3>💵 Başlanğıc Balans / Büdcə</h3>
             <div class="form-group">
                 <label>Cari Balansı Daxil Et (₼)</label>
-                <input type="number" id="main-budget-input" step="0.01" placeholder="Məsələn: 1000.00">
+                <input type="number" id="main-budget-input" inputmode="decimal" pattern="[0-9]*" step="0.01" placeholder="Məsələn: 1000.00">
             </div>
             <div class="balance-box">
                 <div class="title">⚡ Cari Qalan Balansınız</div>
@@ -133,7 +133,8 @@
                 </div>
                 <div class="form-group">
                     <label>💰 Məbləğ (₼)</label>
-                    <input type="number" step="0.01" id="exp-amount" placeholder="0.00" required>
+                    <!-- YALNIZ RƏQƏM KLAVİATURASI ÜÇÜN inputmode VƏ pattern İLƏ DÜZƏLİŞ -->
+                    <input type="number" step="0.01" id="exp-amount" inputmode="decimal" pattern="[0-9]*" placeholder="0.00" required>
                 </div>
                 <div class="form-group">
                     <label>🏷️ Kateqoriya</label>
@@ -244,7 +245,7 @@
 
     const firebaseConfig = {
         apiKey: "AIzaSyAXTdMzt9pcWqwurrZRPZKpmO2i3ssCdmU",
-        authDomain: "moneycontrol-b3318.firebaseapp.com",
+        authDomain: "kapitabanaz-ai.github.io",
         databaseURL: "https://moneycontrol-b3318-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "moneycontrol-b3318",
         storageBucket: "moneycontrol-b3318.firebasestorage.app",
@@ -273,7 +274,7 @@
 
     dateInput.value = new Date().toISOString().split('T')[0];
 
-    // GOOGLE LOGIN / LOGOUT
+    // GOOGLE LOGIN / LOGOUT (Popup rejimi)
     document.getElementById('btn-login').addEventListener('click', async () => {
         const provider = new GoogleAuthProvider();
         try {
@@ -327,13 +328,18 @@
         await setDoc(doc(db, "settings", "budget"), { amount: val });
     });
 
-    // Form Submit
+    // FORM SUBMIT (Limitsiz daxiletmə və Titrəyiş)
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        // TELEFONDA TİTRƏYİŞ (VIBRATION)
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+
         const submitBtn = document.getElementById('submit-btn');
         const editId = document.getElementById('edit-doc-id').value;
-        submitBtn.disabled = true;
-
+        
         const expData = {
             date: dateInput.value,
             person: document.getElementById('exp-person').value,
@@ -351,11 +357,10 @@
             } else {
                 await addDoc(collection(db, "expenses"), expData);
             }
+            // Məlumat daxil edildikdən dərhal sonra formanı sıfırla ki, növbəti xərci istənilən vaxt məhdudiyyətsiz yazmaq olsun
             resetForm();
         } catch (err) {
             alert('Xəta: ' + err.message);
-        } finally {
-            submitBtn.disabled = false;
         }
     });
 
