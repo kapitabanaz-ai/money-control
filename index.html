@@ -55,9 +55,9 @@
         .progress-bar-fill { background: var(--primary); height: 100%; border-radius: 8px; }
 
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid var(--border); height: 65px; z-index: 999; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.70rem; color: var(--text-muted); cursor: pointer; }
         .nav-item.active { color: var(--primary); font-weight: 700; }
-        .nav-item span { font-size: 1.3rem; margin-bottom: 3px; }
+        .nav-item span { font-size: 1.2rem; margin-bottom: 2px; }
 
         .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 12px 0; }
         .person-tag { font-size: 0.75rem; background: #EBF8FF; color: #2B6CB0; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
@@ -98,13 +98,40 @@
 </header>
 
 <div class="container">
+    <!-- TAB 0: DASHBOARD -->
+    <div id="tab-dashboard" class="tab-content active">
+        <div class="card">
+            <h3>📊 Ümumi Baxış (Dashboard)</h3>
+            <div class="balance-box" style="margin-top: 0; margin-bottom: 14px;">
+                <div class="title">⚡ Cari Qalan Balansınız</div>
+                <div class="val" id="dash-current-balance">0.00 ₼</div>
+            </div>
+            <div class="kpi-grid" style="margin-bottom: 0;">
+                <div class="kpi-card">
+                    <div style="font-size:0.75rem; color:var(--text-muted);">💸 Ümumi Xərc</div>
+                    <div class="val" id="dash-total-expense" style="font-size: 1.1rem;">0.00 ₼</div>
+                </div>
+                <div class="kpi-card balance">
+                    <div style="font-size:0.75rem; color:#234E52;">💵 Başlanğıc Büdcə</div>
+                    <div class="val" id="dash-total-budget" style="font-size: 1.1rem;">0.00 ₼</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>⚡ Son Əməliyyatlar</h3>
+            <div id="dash-recent-list">
+                <p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- TAB 1: DAXİLETMƏ -->
-    <div id="tab-add" class="tab-content active">
+    <div id="tab-add" class="tab-content">
         <div class="card">
             <h3>💵 Başlanğıc Balans / Büdcə</h3>
             <div class="form-group">
                 <label>Cari Balansı Daxil Et (₼)</label>
-                <!-- 1. Dəyişiklik: inputmode="numeric" olaraq yeniləndi -->
                 <input type="text" inputmode="numeric" pattern="[0-9]*" id="main-budget-input" placeholder="Məsələn: 1000.00">
             </div>
             <div class="balance-box">
@@ -137,7 +164,6 @@
                 </div>
                 <div class="form-group">
                     <label>💰 Məbləğ (₼)</label>
-                    <!-- 1. Dəyişiklik: inputmode="numeric" olaraq yeniləndi -->
                     <input type="text" inputmode="numeric" pattern="[0-9]*" id="exp-amount" placeholder="0.00" required>
                 </div>
                 <div class="form-group">
@@ -213,8 +239,11 @@
 </div>
 
 <div class="nav-bar">
-    <div class="nav-item active" onclick="switchTab('add', this)">
-        <span>➕</span> Düzəliş
+    <div class="nav-item active" onclick="switchTab('dashboard', this)">
+        <span>🏠</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="switchTab('add', this)">
+        <span>➕</span> Əlavə et
     </div>
     <div class="nav-item" onclick="switchTab('analytics', this)">
         <span>📊</span> Analitika
@@ -320,7 +349,7 @@
             if (docSnap.exists()) {
                 budget = docSnap.data().amount || 0;
                 budgetInput.value = budget ? budget : '';
-                renderAnalytics();
+                renderAll();
             }
         });
 
@@ -343,7 +372,6 @@
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // 2. Dəyişiklik: Düyməni basdıqda titrəyiş effekti (40ms)
         if ("vibrate" in navigator) {
             navigator.vibrate(40);
         }
@@ -378,7 +406,6 @@
         }
     });
 
-    // 3. Dəyişiklik: Formun və redaktə ID-sinin tam təmizlənməsi (Sildikdən/əlavə etdikdən sonra yenidən əlavə etmək problemi həll olundu)
     window.resetForm = function() {
         document.getElementById('edit-doc-id').value = '';
         document.getElementById('exp-amount').value = '';
@@ -404,14 +431,14 @@
         document.getElementById('form-title').innerText = '✏️ Xərci Redaktə Et';
         document.getElementById('submit-btn').innerText = 'Yenilə';
         document.getElementById('cancel-edit-btn').style.display = 'block';
-        switchTab('add', document.querySelectorAll('.nav-item')[0]);
+        switchTab('add', document.querySelectorAll('.nav-item')[1]);
     };
 
     window.deleteExpense = async function(id) {
         if (confirm('Bu xərci silmək istədiyinizdən əminsiniz?')) {
             try {
                 await deleteDoc(doc(db, "expenses", id));
-                resetForm(); // Silindikdən sonra formda qalan ola biləcək köhnə məlumatları sıfırlayır
+                resetForm();
             } catch (err) {
                 alert('Silinərkən xəta baş verdi: ' + err.message);
             }
@@ -441,6 +468,34 @@
         if (el) el.classList.add('active');
         renderAll();
     };
+
+    function renderDashboard() {
+        const total = expenses.reduce((sum, item) => sum + item.amount, 0);
+        const currentBalance = budget - total;
+
+        document.getElementById('dash-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
+        document.getElementById('dash-total-expense').innerText = total.toFixed(2) + ' ₼';
+        document.getElementById('dash-total-budget').innerText = budget.toFixed(2) + ' ₼';
+
+        // Son 5 əməliyyat
+        const recent = expenses.slice(0, 5);
+        let rHTML = '';
+        recent.forEach(x => {
+            rHTML += `
+            <div class="history-item">
+                <div>
+                    <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
+                        Tarix: ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''}
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="amount-tag">-${x.amount.toFixed(2)} ₼</div>
+                </div>
+            </div>`;
+        });
+        document.getElementById('dash-recent-list').innerHTML = rHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib.</p>';
+    }
 
     function renderAnalytics() {
         const total = expenses.reduce((sum, item) => sum + item.amount, 0);
@@ -507,6 +562,7 @@
     }
 
     function renderAll() {
+        renderDashboard();
         renderAnalytics();
         renderHistory();
     }
