@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Money Control PWA</title>
     <meta name="theme-color" content="#1A365D">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFpbGUgWGVyYyBJemxhbWUiLAogICJzaG9ydF9uYW1lIjogIlhlcmMgSXpsYW1lIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjRjdGQUZDIiwKICAidGhlbWVfY29sb3IiOiAiIzFBMzY1RCIKfQ==">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFpbMO9IFjJmXJjIMSwemzJmW3JOSIsCiAgInNob3J0X25hbWUiOiAiWMmXcmMgxLB6bMmJbcmyIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjRjdGQUZDIiwKICAidGhlbWVfY29sb3IiOiOiOiIzFBMzY1RCIKfQ==">
     <style>
         :root {
             --primary: #2B6CB0;
@@ -128,15 +128,15 @@
         </div>
         <div class="card">
             <h3 id="form-title">➕ Yeni Xərc Əlavə Et</h3>
-            <form id="expense-form">
+            <div id="expense-form">
                 <input type="hidden" id="edit-doc-id">
                 <div class="form-group">
                     <label>📅 Tarix</label>
-                    <input type="date" id="exp-date" required>
+                    <input type="date" id="exp-date">
                 </div>
                 <div class="form-group">
                     <label>👤 Şəxs / Aidiyyatı</label>
-                    <select id="exp-person" required>
+                    <select id="exp-person">
                         <option value="👨‍💼 Javid">👨‍💼 Javid</option>
                         <option value="👩‍💼 Turanə">👩‍💼 Turanə</option>
                         <option value="👦 Kənan">👦 Kənan</option>
@@ -150,11 +150,11 @@
                 </div>
                 <div class="form-group">
                     <label>💰 Məbləğ (₼)</label>
-                    <input type="text" inputmode="decimal" id="exp-amount" placeholder="0.00" required>
+                    <input type="text" inputmode="decimal" id="exp-amount" placeholder="0.00">
                 </div>
                 <div class="form-group">
                     <label>🏷️ Kateqoriya</label>
-                    <select id="exp-category" required>
+                    <select id="exp-category">
                         <option value="🛒 Ərzaq / Market">🛒 Ərzaq / Market</option>
                         <option value="⚡ Kommunal (İşıq, Qaz, Su)">⚡ Kommunal (İşıq, Qaz, Su)</option>
                         <option value="🚌 Nəqliyyat">🚌 Nəqliyyat</option>
@@ -174,7 +174,7 @@
                 </div>
                 <div class="form-group">
                     <label>💳 Ödəniş Üsulu</label>
-                    <select id="exp-pay" required>
+                    <select id="exp-pay">
                         <option value="💳 Kart">💳 Kart</option>
                         <option value="💵 Nəqd">💵 Nəqd</option>
                     </select>
@@ -183,9 +183,9 @@
                     <label>📝 Qeyd</label>
                     <input type="text" id="exp-note" placeholder="Məsələn: Bravo market">
                 </div>
-                <button type="submit" id="submit-btn" class="btn">Əlavə Et</button>
+                <button type="button" id="submit-btn" class="btn">Əlavə Et</button>
                 <button type="button" id="cancel-edit-btn" class="btn btn-cancel" onclick="resetForm()">İmtina Et</button>
-            </form>
+            </div>
         </div>
     </div>
     <!-- TAB 2: ANALİTİKA -->
@@ -277,14 +277,12 @@
     let currentUser = null;
     let expenses = [];
     let budget = 0;
-    let listenersStarted = false;   // ← təkrar listener-in qarşısını alır
 
     const authOverlay = document.getElementById('auth-overlay');
     const userProfile = document.getElementById('user-profile');
     const userImg = document.getElementById('user-img');
     const userName = document.getElementById('user-name');
     const budgetInput = document.getElementById('main-budget-input');
-    const expenseForm = document.getElementById('expense-form');
     const expenseAmountInput = document.getElementById('exp-amount');
     const dateInput = document.getElementById('exp-date');
 
@@ -296,7 +294,20 @@
         });
     });
 
-    // ===== LOGIN =====
+    // Bütün form elementlərində (şəxs, kateqoriya, məbləğ və s.) dəyişiklik olunduqda düyməni aktivləşdiririk
+    const formInputs = document.querySelectorAll('#expense-form input, #expense-form select');
+    formInputs.forEach(element => {
+        element.addEventListener('input', activateSubmitButton);
+        element.addEventListener('change', activateSubmitButton);
+    });
+
+    function activateSubmitButton() {
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+        }
+    }
+
     const loginBtn = document.getElementById('btn-login');
     if (loginBtn) {
         loginBtn.addEventListener('click', async () => {
@@ -328,15 +339,11 @@
             userProfile.style.display = 'none';
             expenses = [];
             budget = 0;
-            listenersStarted = false;
             renderAll();
         }
     });
 
     function initAppListeners() {
-        if (listenersStarted) return;   // yalnız bir dəfə
-        listenersStarted = true;
-
         onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
             if (docSnap.exists()) {
                 budget = parseFloat(docSnap.data().amount) || 0;
@@ -370,14 +377,8 @@
         }
     });
 
-    // ===== FORM SUBMIT (düzəldilmiş) =====
-    async function handleFormSubmit(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
+    async function handleFormSubmit() {
         const submitBtn = document.getElementById('submit-btn');
-        if (!submitBtn || submitBtn.disabled) return;
-
         const editId = document.getElementById('edit-doc-id').value.trim();
         const amountRaw = document.getElementById('exp-amount').value.trim().replace(',', '.');
         const amountVal = parseFloat(amountRaw);
@@ -411,18 +412,16 @@
             }
             window.resetForm();
         } catch (err) {
-            console.error("Xərc xətası:", err);
+            console.error(err);
             alert('Xəta baş verdi: ' + err.message);
         } finally {
             submitBtn.disabled = false;
-            const isEdit = document.getElementById('edit-doc-id').value.trim() !== '';
-            submitBtn.innerText = isEdit ? 'Yenilə' : 'Əlavə Et';
+            submitBtn.innerText = document.getElementById('edit-doc-id').value ? 'Yenilə' : 'Əlavə Et';
         }
     }
 
-    expenseForm.addEventListener('submit', handleFormSubmit);
+    document.getElementById('submit-btn').addEventListener('click', handleFormSubmit);
 
-    // ===== RESET FORM =====
     window.resetForm = function() {
         document.getElementById('edit-doc-id').value = '';
         document.getElementById('exp-amount').value = '';
@@ -439,7 +438,6 @@
         dateInput.value = new Date().toISOString().split('T')[0];
     };
 
-    // ===== EDIT & DELETE =====
     window.editExpense = function(id) {
         const exp = expenses.find(x => x.id === id);
         if (!exp) return;
@@ -571,10 +569,10 @@
     }
 
     function renderHistory() {
-        let hHTML = '';
+        let hHTML_str = '';
         expenses.forEach(x => {
             const amt = (parseFloat(x.amount) || 0).toFixed(2);
-            hHTML += `
+            hHTML_str += `
             <div class="history-item">
                 <div>
                     <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
@@ -591,7 +589,7 @@
                 </div>
             </div>`;
         });
-        document.getElementById('history-list').innerHTML = hHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki tarixçə yoxdur.</p>';
+        document.getElementById('history-list').innerHTML = hHTML_str || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki tarixçə yoxdur.</p>';
     }
 
     function renderAll() {
