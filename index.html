@@ -37,10 +37,9 @@
 
         .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
         .btn:active { background: #2B6CB0; }
-        .btn:disabled { background: #A0AEC0; cursor: not-allowed; opacity: 0.7; }
+        .btn:disabled { background: #A0AEC0; cursor: not-allowed; }
         .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 8px 12px; }
-        .btn-success { background: var(--success); color: white; }
         .btn-cancel { background: #A0AEC0; margin-top: 8px; display: none; }
 
         .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -81,11 +80,11 @@
 <!-- GOOGLE LOGIN MODAL -->
 <div id="auth-overlay">
     <div class="auth-card">
-        <h2 style="color: var(--primary-dark); margin-bottom: 8px;">🏡 Save Money</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Daxil olmaq və məlumatları sinxronlaşdırmaq üçün Google hesabınızla giriş edin.</p>
+        <h2 style="color: var(--primary-dark); margin-bottom: 8px;">🏡 Ailə Xərc İzləmə</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Daxil olmaq və məlumatları sinxronlaşdırmaq üçün Google hesabınızla giriş edin[cite: 3].</p>
         <button id="btn-login" class="btn btn-google">
             <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.78c-.19-.53-.3-1.1-.3-1.78s.11-1.25.3-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
-            Google ilə Giriş Et
+            Google ilə Giriş Et[cite: 3]
         </button>
     </div>
 </div>
@@ -123,7 +122,7 @@
         <div class="card">
             <h3>⚡ Son Əməliyyatlar</h3>
             <div id="dash-recent-list">
-                <p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib.</p>
+                <p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib[cite: 3].</p>
             </div>
         </div>
     </div>
@@ -134,7 +133,7 @@
             <h3>💵 Başlanğıc Balans / Büdcə</h3>
             <div class="form-group">
                 <label>Cari Balansı Daxil Et (₼)</label>
-                <input type="text" inputmode="decimal" id="main-budget-input" placeholder="Məsələn: 1000.00">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" id="main-budget-input" placeholder="Məsələn: 1000.00">
             </div>
             <div class="balance-box">
                 <div class="title">⚡ Cari Qalan Balansınız</div>
@@ -166,12 +165,13 @@
                 </div>
                 <div class="form-group">
                     <label>💰 Məbləğ (₼)</label>
-                    <input type="text" inputmode="decimal" id="exp-amount" placeholder="0.00" required>
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" id="exp-amount" placeholder="0.00" required>
                 </div>
                 <div class="form-group">
                     <label>🏷️ Kateqoriya</label>
                     <select id="exp-category" required>
                         <option value="🛒 Ərzaq / Market">🛒 Ərzaq / Market</option>
+                        <option value="🚌 Avtobus / İctimai Nəqliyyat">🚌 Avtobus / İctimai Nəqliyyat</option>
                         <option value="⚡ Kommunal (İşıq, Qaz, Su)">⚡ Kommunal (İşıq, Qaz, Su)</option>
                         <option value="🚕 Nəqliyyat / Taksi / Yanacaq">🚕 Nəqliyyat / Taksi / Yanacaq</option>
                         <option value="📱 Mobil / İnternet / TV">📱 Mobil / İnternet / TV</option>
@@ -225,17 +225,12 @@
         </div>
     </div>
 
-    <!-- TAB 3: TARİXÇƏ VƏ YEDƏKLƏMƏ / İDXAL -->
+    <!-- TAB 3: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
     <div id="tab-history" class="tab-content">
         <div class="card">
-            <h3>💾 Backup və İdxal (Import)</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Köhnə proqramın CSV və ya JSON faylını Firebase bazasına köçürün.</p>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button id="btn-export" class="btn btn-outline" style="flex: 1;">📥 Məlumatları Endir</button>
-                <label for="import-file" class="btn btn-success" style="flex: 1; text-align: center; cursor: pointer; display: inline-block; padding: 10px;">📤 Bazaya Yüklə (CSV/JSON)</label>
-                <input type="file" id="import-file" accept=".csv,.json" style="display: none;">
-            </div>
-            <div id="import-status" style="font-size: 0.8rem; color: var(--primary); margin-top: 8px; font-weight: 600;"></div>
+            <h3>💾 Backup / Yedəkləmə</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin[cite: 3].</p>
+            <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
         </div>
 
         <div class="card">
@@ -279,7 +274,6 @@
         doc, 
         setDoc,
         updateDoc,
-        writeBatch,
         enableIndexedDbPersistence 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -312,7 +306,6 @@
     const expenseForm = document.getElementById('expense-form');
     const expenseAmountInput = document.getElementById('exp-amount');
     const dateInput = document.getElementById('exp-date');
-    const submitBtn = document.getElementById('submit-btn');
 
     dateInput.value = new Date().toISOString().split('T')[0];
 
@@ -320,11 +313,6 @@
         input.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9.]/g, '');
         });
-    });
-
-    expenseForm.querySelectorAll('input, select').forEach(element => {
-        element.addEventListener('input', () => { if(submitBtn.disabled) submitBtn.disabled = false; });
-        element.addEventListener('change', () => { if(submitBtn.disabled) submitBtn.disabled = false; });
     });
 
     document.getElementById('btn-login').addEventListener('click', async () => {
@@ -381,52 +369,38 @@
 
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        const editId = document.getElementById('edit-doc-id').value.trim();
-        const amountRaw = document.getElementById('exp-amount').value.trim();
-        const amountVal = parseFloat(amountRaw);
-
-        if (!amountRaw || isNaN(amountVal) || amountVal <= 0) {
-            alert("Düzgün məbləğ daxil edin (məsələn: 25.50)");
-            return;
-        }
-
+        
         if ("vibrate" in navigator) {
             navigator.vibrate(40);
         }
 
+        const submitBtn = document.getElementById('submit-btn');
+        const editId = document.getElementById('edit-doc-id').value;
         submitBtn.disabled = true;
-        const originalText = submitBtn.innerText;
-        submitBtn.innerText = "Saxlanılır...";
 
         const expData = {
             date: dateInput.value,
             person: document.getElementById('exp-person').value,
-            amount: amountVal,
+            amount: parseFloat(document.getElementById('exp-amount').value),
             category: document.getElementById('exp-category').value,
             pay: document.getElementById('exp-pay').value,
-            note: document.getElementById('exp-note').value.trim(),
+            note: document.getElementById('exp-note').value,
             createdBy: currentUser ? currentUser.email : 'Naməlum',
             createdAt: Date.now()
         };
 
         try {
-            if (editId) {
-                await updateDoc(doc(db, "expenses", editId), expData);
+            if (editId && editId.trim() !== "") {
+                const docRef = doc(db, "expenses", editId);
+                await updateDoc(docRef, expData);
             } else {
                 await addDoc(collection(db, "expenses"), expData);
             }
             resetForm();
         } catch (err) {
-            console.error(err);
             alert('Xəta baş verdi: ' + err.message);
-            submitBtn.disabled = false;
-            submitBtn.innerText = originalText;
         } finally {
-            if (submitBtn.disabled) {
-                submitBtn.disabled = false;
-                submitBtn.innerText = editId ? 'Yenilə' : 'Əlavə Et';
-            }
+            submitBtn.disabled = false;
         }
     });
 
@@ -435,10 +409,8 @@
         document.getElementById('exp-amount').value = '';
         document.getElementById('exp-note').value = '';
         document.getElementById('form-title').innerText = '➕ Yeni Xərc Əlavə Et';
-        
-        submitBtn.innerText = 'Əlavə Et';
-        submitBtn.disabled = false;
-        
+        document.getElementById('submit-btn').innerText = 'Əlavə Et';
+        document.getElementById('submit-btn').disabled = false;
         document.getElementById('cancel-edit-btn').style.display = 'none';
         dateInput.value = new Date().toISOString().split('T')[0];
     };
@@ -456,8 +428,8 @@
         document.getElementById('exp-note').value = exp.note || '';
 
         document.getElementById('form-title').innerText = '✏️ Xərci Redaktə Et';
-        submitBtn.innerText = 'Yenilə';
-        submitBtn.disabled = false;
+        document.getElementById('submit-btn').innerText = 'Yenilə';
+        document.getElementById('submit-btn').disabled = false;
         document.getElementById('cancel-edit-btn').style.display = 'block';
         switchTab('add', document.querySelectorAll('.nav-item')[1]);
     };
@@ -487,157 +459,6 @@
         downloadAnchor.click();
         downloadAnchor.remove();
     });
-
-    // -------------------------------------------------------------
-    // AUTOMATIC DATA IMPORT & PARSING ENGINE (CSV & JSON)
-    // -------------------------------------------------------------
-    const CATEGORY_MAP = {
-      '🛒 Ərzaq / Market': ['market', 'corek', 'et', 'slavyanka', 'food', 'bolmart', 'neptun market', 'meyve', 'qatiq', 'shokolad', 'cerez', 'dondurma', 'toyuq', 'pive', 'kofe'],
-      '⚡ Kommunal (İşıq, Qaz, Su)': ['kommunal', 'energy / water', 'azeriwiq', 'azersu', 'azeristilik', 'telefon pulu'],
-      '🚕 Nəqliyyat / Taksi / Yanacaq': ['taxi', 'yol pulu', 'nəqliyyat', 'taksi', 'benzin', 'yanacaq'],
-      '📱 Mobil / İnternet / TV': ['mobil', 'internet', 'tv', 'azercell', 'bakcell', 'nar'],
-      '☕ Restoran / Kafe / Çatdırılma': ['iwde nahar', 'party', 'doner', 'kafe', 'kabab time', 'pizza time', 'tort', 'lahmacun'],
-      '💊 Sağlamlıq / Aptek': ['derman', 'sağlamlıq', 'hekim', 'analiz', 'hb guven', 'aptek'],
-      '👔 Geyim / Şəxsi Qayğı': ['clothes', 'geyim', 'pampers', 'shampun', 'lazer', 'ayaqqabi'],
-      '🏠 Ev / Təmir / Məişət': ['house', 'ev', 'temir', 'kommunal 19/49', 'lift pulu'],
-      '🎮 Əyləncə / Asudə Vaxt': ['travel', 'summer vacation', 'holiday', 'eylence', 'deniz', 'tur'],
-      '🎓 Təhsil / İT / Kitab': ['education', 'tehsil', 'bagca pulu', 'kitab', 'kurs']
-    };
-
-    const PERSON_MAP = {
-      'cavid': '👨‍💼 Javid', 'javid': '👨‍💼 Javid',
-      'turana': '👩‍💼 Turanə', 'turanə': '👩‍💼 Turanə',
-      'kenan': '👦 Kənan', 'kənan': '👦 Kənan',
-      'valide': '👩 Validə', 'validə': '👩 Validə',
-      'konul': '👩 Könül', 'könül': '👩 Könül',
-      'buzovna': '🏡 Buzovna', '19/49': '🏡 19/49', '21/27': '🏡 21/27'
-    };
-
-    document.getElementById('import-file').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const statusDiv = document.getElementById('import-status');
-        statusDiv.innerText = "⏳ Fayl oxunur və təmizlənir...";
-
-        const reader = new FileReader();
-        reader.onload = async function(event) {
-            try {
-                const text = event.target.result;
-                let parsedExpenses = [];
-
-                if (file.name.endsWith('.json')) {
-                    const jsonData = JSON.parse(text);
-                    parsedExpenses = jsonData.expenses || jsonData;
-                } else {
-                    parsedExpenses = parseCsvData(text);
-                }
-
-                if (!parsedExpenses || parsedExpenses.length === 0) {
-                    statusDiv.innerText = "❌ Faylda uyğun məlumat tapılmadı.";
-                    return;
-                }
-
-                statusDiv.innerText = `⏳ ${parsedExpenses.length} ədəd məlumat Firebase-ə yüklənir...`;
-                
-                // Firestore Write Batch (500 ədədlik hissələrlə)
-                let batch = writeBatch(db);
-                let count = 0;
-
-                for (let exp of parsedExpenses) {
-                    const docRef = doc(collection(db, "expenses"));
-                    batch.set(docRef, {
-                        date: exp.date || new Date().toISOString().split('T')[0],
-                        person: exp.person || '🏡 Ümumi ailə',
-                        amount: parseFloat(exp.amount) || 0,
-                        category: exp.category || '📦 Digər Xərclər',
-                        pay: exp.pay || '💳 Kart',
-                        note: exp.note || '',
-                        createdBy: currentUser ? currentUser.email : 'Imported',
-                        createdAt: exp.createdAt || Date.now()
-                    });
-
-                    count++;
-                    if (count % 450 === 0) {
-                        await batch.commit();
-                        batch = writeBatch(db);
-                    }
-                }
-                
-                if (count % 450 !== 0) {
-                    await batch.commit();
-                }
-
-                statusDiv.innerText = `✅ Uğurla ${parsedExpenses.length} ədəd xərc bazaya köçürüldü!`;
-                alert(`✅ Uğurla ${parsedExpenses.length} ədəd xərc bazaya əlavə olundu!`);
-            } catch (err) {
-                console.error(err);
-                statusDiv.innerText = "❌ Yükləmə zamanı xəta baş verdi: " + err.message;
-            }
-        };
-
-        reader.readAsText(file);
-    });
-
-    function parseCsvData(csvText) {
-        const lines = csvText.split(/\r?\n/);
-        if (lines.length < 2) return [];
-
-        const results = [];
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
-
-            const parts = line.split(';');
-            const rawType = parts[1] ? parts[1].trim() : 'Expense';
-            if (rawType === 'Income') continue; // Yalnız xərcləri idxal edirik
-
-            const rawDate = parts[0] ? parts[0].trim() : '';
-            const rawAmount = parts[2] ? parseFloat(parts[2].replace(',', '.')) : 0;
-            const rawTitle = parts[4] ? parts[4].trim() : '';
-            const rawPerson = parts[5] ? parts[5].trim() : '';
-            const rawAccount = parts[6] ? parts[6].trim() : '';
-            const rawCounterAccount = parts[7] ? parts[7].trim() : '';
-            const rawCategory = parts[8] ? parts[8].trim() : '';
-            const rawNote = parts[9] ? parts[9].trim() : '';
-
-            // 1. Şəxs təyini
-            let finalPerson = '🏡 Ümumi ailə';
-            const catKey = rawCategory.toLowerCase();
-            const personKey = rawPerson.toLowerCase();
-
-            if (PERSON_MAP[catKey]) finalPerson = PERSON_MAP[catKey];
-            else if (PERSON_MAP[personKey]) finalPerson = PERSON_MAP[personKey];
-
-            // 2. Kateqoriya təyini
-            let finalCategory = '📦 Digər Xərclər';
-            const searchText = `${rawCategory} ${rawTitle} ${rawNote}`.toLowerCase();
-
-            for (const [catName, keywords] of Object.entries(CATEGORY_MAP)) {
-                if (keywords.some(kw => searchText.includes(kw))) {
-                    finalCategory = catName;
-                    break;
-                }
-            }
-
-            // 3. Ödəniş üsulu
-            let finalPay = '💵 Nəqd';
-            if (rawCounterAccount.toLowerCase().includes('card') || rawAccount.toLowerCase().includes('card') || rawCounterAccount.toLowerCase().includes('kart')) {
-                finalPay = '💳 Kart';
-            }
-
-            results.push({
-                date: rawDate,
-                person: finalPerson,
-                amount: Math.abs(rawAmount),
-                category: finalCategory,
-                pay: finalPay,
-                note: rawNote || rawTitle || rawCategory,
-                createdAt: Date.now() - (lines.length - i) * 1000
-            });
-        }
-        return results;
-    }
 
     window.switchTab = function(tabName, el) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -671,7 +492,7 @@
                 </div>
             </div>`;
         });
-        document.getElementById('dash-recent-list').innerHTML = rHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib.</p>';
+        document.getElementById('dash-recent-list').innerHTML = rHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib[cite: 3].</p>';
     }
 
     function renderAnalytics() {
@@ -696,7 +517,7 @@
                 <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%;"></div></div>
             </div>`;
         }
-        document.getElementById('person-summary').innerHTML = pHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
+        document.getElementById('person-summary').innerHTML = pHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur[cite: 3].</p>';
 
         const cSummary = {};
         expenses.forEach(x => { cSummary[x.category] = (cSummary[x.category] || 0) + x.amount; });
@@ -712,7 +533,7 @@
                 <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%; background:#4299E1;"></div></div>
             </div>`;
         }
-        document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
+        document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur[cite: 3].</p>';
     }
 
     function renderHistory() {
@@ -735,7 +556,7 @@
                 </div>
             </div>`;
         });
-        document.getElementById('history-list').innerHTML = hHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib.</p>';
+        document.getElementById('history-list').innerHTML = hHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib[cite: 3].</p>';
     }
 
     function renderAll() {
