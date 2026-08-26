@@ -324,14 +324,27 @@
     import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     // Firebase Konfiqurasiyası
-    const firebaseConfig = {
-      apiKey: "AIzaSyAXTdMzt9pcWqwurrZRPZKpmO2i3ssCdmU", // Firebase açarınız
-      authDomain: "moneycontrol-b3318.firebaseapp.com",
-      projectId: "moneycontrol-b3318",
-      storageBucket: "moneycontrol-b3318.appspot.com",
-      messagingSenderId: "1024118327948",
-      appId: "1:1024118327948:web:e89a1bcd534a08aafa49a9"
-    };
+   const firebaseConfig = {
+
+  apiKey: "AIzaSyAXTdMzt9pcWqwurrZRPZKpmO2i3ssCdmU",
+
+  authDomain: "moneycontrol-b3318.firebaseapp.com",
+
+  databaseURL: "https://moneycontrol-b3318-default-rtdb.europe-west1.firebasedatabase.app",
+
+  projectId: "moneycontrol-b3318",
+
+  storageBucket: "moneycontrol-b3318.firebasestorage.app",
+
+  messagingSenderId: "1024118327948",
+
+  appId: "1:1024118327948:web:e89a1bcd534a08aafa49a9",
+
+  measurementId: "G-BHZLQJMZFN"
+
+};
+
+
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
