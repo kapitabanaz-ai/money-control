@@ -241,7 +241,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
         getAuth, 
-        signInWithPopup, 
+        signInWithRedirect, 
+        getRedirectResult,
         GoogleAuthProvider, 
         signOut, 
         onAuthStateChanged 
@@ -295,10 +296,15 @@
         });
     });
 
+    // Yönləndirmə (Redirect) nəticəsini yoxla
+    getRedirectResult(auth).catch((err) => {
+        console.error("Redirect xətası:", err);
+    });
+
     document.getElementById('btn-login').addEventListener('click', async () => {
         const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
+            await signInWithRedirect(auth, provider);
         } catch (err) {
             alert("Giriş zamanı xəta baş verdi: " + err.message);
         }
@@ -407,7 +413,6 @@
         }
     }
 
-    // Həm submit, həm də click event-ləri
     expenseForm.addEventListener('submit', handleFormSubmit);
     expenseForm.addEventListener('click', function (e) {
         if (e.target && e.target.id === 'submit-btn') {
@@ -559,4 +564,40 @@
                     <strong>${cSummary[c].toFixed(2)} ₼ (${pct}%)</strong>
                 </div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%; background:#4299E1;"></div></div>
-           
+            </div>`;
+        }
+        document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
+    }
+
+    function renderHistory() {
+        let hHTML = '';
+        expenses.forEach(x => {
+            const amt = (parseFloat(x.amount) || 0).toFixed(2);
+            hHTML += `
+            <div class="history-item">
+                <div>
+                    <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
+                        📅 ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''}
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="amount-tag">-${amt} ₼</div>
+                    <div style="margin-top: 6px;">
+                        <button class="action-btn edit-btn" onclick="editExpense('${x.id}')">✏️ Düzəliş</button>
+                        <button class="action-btn delete-btn" onclick="deleteExpense('${x.id}')">🗑️ Sil</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+        document.getElementById('history-list').innerHTML = hHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki tarixçə yoxdur.</p>';
+    }
+
+    function renderAll() {
+        renderDashboard();
+        renderAnalytics();
+        renderHistory();
+    }
+</script>
+</body>
+</html>
