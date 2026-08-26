@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Money Control PWA</title>
     <meta name="theme-color" content="#1A365D">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFpbMO9IFjJmXJjIMSwemzJmW3JOSIsCiAgInNob3J0X25hbWUiOiAiWMmXcmMgxLB6bMmJbcmyIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjRjdGQUZDIiwKICAidGhlbWVfY29sb3IiOiOiOiIzFBMzY1RCIKfQ==">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFpbMO9IFjJmXJjIMSwemzJmW3JOSIsCiAgInNob3J0X25hbWUiOiAiWMmXcmMgxLB6bMmJbcmyIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjRjdGQUZDIiwKICAidGhlbWVfY29sb3IiOiOiOiOiIzFBMzY1RCIKfQ==">
     <style>
         :root {
             --primary: #2B6CB0;
@@ -71,7 +71,7 @@
 <div id="auth-overlay">
     <div class="auth-card">
         <h2 style="color: var(--primary-dark); margin-bottom: 8px;">🏡 Save Money</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Daxil olmaq və məlumatları sinxronlaşdırmaq üçün Google hesabınızla giriş edin[cite: 2].</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Daxil olmaq və məlumatları sinxronlaşdırmaq üçün Google hesabınızla giriş edin.</p>
         <button id="btn-login" class="btn btn-google">
             <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.78c-.19-.53-.3-1.1-.3-1.78s.11-1.25.3-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
             Google ilə Giriş Et
@@ -214,7 +214,7 @@
     <div id="tab-history" class="tab-content">
         <div class="card">
             <h3>💾 Backup / Yedəkləmə</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin[cite: 2].</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin.</p>
             <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
         </div>
         <div class="card">
@@ -275,6 +275,12 @@
     const db = getFirestore(app);
     enableIndexedDbPersistence(db).catch(() => {});
 
+    // Yalnız daxil olmasına icazə verilən 2 e-poçt ünvanını buraya daxil edin:
+    const allowedEmails = [
+        "kapitabanaz@gmail.com",
+        "turana.ismayilova1@gmail.com"
+    ];
+
     let currentUser = null;
     let expenses = [];
     let budget = 0;
@@ -327,6 +333,13 @@
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            // İcazə yoxlaması
+            if (!allowedEmails.includes(user.email)) {
+                alert("Bu hesabın sistemə giriş icazəsi yoxdur!");
+                signOut(auth);
+                return;
+            }
+
             currentUser = user;
             authOverlay.style.display = 'none';
             userProfile.style.display = 'flex';
