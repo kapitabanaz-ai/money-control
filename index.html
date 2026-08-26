@@ -71,7 +71,7 @@
 <div id="auth-overlay">
     <div class="auth-card">
         <h2 style="color: var(--primary-dark); margin-bottom: 8px;">🏡 Save Money</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Daxil olmaq və məlumatları sinxronlaşdırmaq üçün Google hesabınızla giriş edin.</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Daxil olmaq və məlumatları sinxronlaşdırmaq üçün Google hesabınızla giriş edin[cite: 2].</p>
         <button id="btn-login" class="btn btn-google">
             <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.78c-.19-.53-.3-1.1-.3-1.78s.11-1.25.3-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
             Google ilə Giriş Et
@@ -214,7 +214,7 @@
     <div id="tab-history" class="tab-content">
         <div class="card">
             <h3>💾 Backup / Yedəkləmə</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin.</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin[cite: 2].</p>
             <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
         </div>
         <div class="card">
@@ -295,7 +295,6 @@
         });
     });
 
-    // Bütün form elementlərində (şəxs, kateqoriya, məbləğ və s.) dəyişiklik olunduqda düyməni aktivləşdiririk
     const formInputs = document.querySelectorAll('#expense-form input, #expense-form select');
     formInputs.forEach(element => {
         element.addEventListener('input', activateSubmitButton);
@@ -513,7 +512,7 @@
                 <div>
                     <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
-                        Tarix: ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''}
+                        Tarix: ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''} | ✉️ ${x.createdBy || 'Naməlum'}
                     </div>
                 </div>
                 <div style="text-align:right;">
@@ -578,7 +577,7 @@
                 <div>
                     <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
-                        📅 ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''}
+                        📅 ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''} | ✉️ ${x.createdBy || 'Naməlum'}
                     </div>
                 </div>
                 <div style="text-align:right;">
