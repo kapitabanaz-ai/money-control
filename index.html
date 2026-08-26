@@ -79,7 +79,7 @@
 <!-- GOOGLE LOGIN MODAL -->
 <div id="auth-overlay">
     <div class="auth-card">
-        <h2 style="color: var(--primary-dark); margin-bottom: 8px;">Ailə Xərc İzləmə</h2>
+        <h2 style="color: var(--primary-dark); margin-bottom: 8px;">🏡 Ailə Xərc İzləmə</h2>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Daxil olmaq və məlumatları sinxronlaşdırmaq üçün Google hesabınızla giriş edin.</p>
         <button id="btn-login" class="btn btn-google">
             <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.78c-.19-.53-.3-1.1-.3-1.78s.11-1.25.3-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
@@ -89,7 +89,7 @@
 </div>
 
 <header>
-    <span>📱 Xərc İzləmə</span>
+    <span>🏡 Xərc İzləmə</span>
     <div class="user-profile" id="user-profile" style="display:none;">
         <img id="user-img" class="user-avatar" src="" alt="User">
         <span id="user-name"></span>
@@ -104,7 +104,7 @@
             <h3>💵 Başlanğıc Balans / Büdcə</h3>
             <div class="form-group">
                 <label>Cari Balansı Daxil Et (₼)</label>
-                <input type="number" id="main-budget-input" inputmode="decimal" step="0.01" min="0" placeholder="Məsələn: 1000.00">
+                <input type="text" inputmode="decimal" pattern="[0-9]*" id="main-budget-input" placeholder="Məsələn: 1000.00">
             </div>
             <div class="balance-box">
                 <div class="title">⚡ Cari Qalan Balansınız</div>
@@ -122,22 +122,21 @@
                 </div>
                 <div class="form-group">
                     <label>👤 Şəxs / Aidiyyatı</label>
-                    <!-- Tamamilə Dəqiqləşdirilmiş Siyahı -->
                     <select id="exp-person" required>
                         <option value="👨‍💼 Javid">👨‍💼 Javid</option>
                         <option value="👩‍💼 Turanə">👩‍💼 Turanə</option>
                         <option value="👦 Kənan">👦 Kənan</option>
                         <option value="👩 Validə">👩 Validə</option>
                         <option value="👩 Könül">👩 Könül</option>
-                        <option value="👨‍👩‍👧‍👦 Ümumi ailə">👨‍👩‍👧‍👦 Ümumi ailə</option>
-                        <option value="🏡 21/27">🏡 21/27</option>+
+                        <option value="🏡 Ümumi ailə">🏡 Ümumi ailə</option>
+                        <option value="🏡 21/27">🏡 21/27</option>
                         <option value="🏡 19/49">🏡 19/49</option>
                         <option value="🏡 Buzovna">🏡 Buzovna</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>💰 Məbləğ (₼)</label>
-                    <input type="number" id="exp-amount" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required>
+                    <input type="text" inputmode="decimal" pattern="[0-9]*" id="exp-amount" placeholder="0.00" required>
                 </div>
                 <div class="form-group">
                     <label>🏷️ Kateqoriya</label>
@@ -160,7 +159,7 @@
                     <select id="exp-pay" required>
                         <option value="💳 Kart">💳 Kart</option>
                         <option value="💵 Nəqd">💵 Nəqd</option>
-                     
+                        <option value="📲 Mobil Köçürmə">📲 Mobil Köçürmə</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -278,7 +277,7 @@
 
     dateInput.value = new Date().toISOString().split('T')[0];
 
-    // HƏRF YAZILMASININ QARŞISINI JS İLƏ ALMAQ
+    // RƏQƏM VƏ NÖQTƏ XARİCİNDƏ HƏRFLƏRİN QARŞISINI ALMAQ (Mobil Klaviatura Üçün)
     [budgetInput, expenseAmountInput].forEach(input => {
         input.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9.]/g, '');
@@ -319,15 +318,15 @@
         onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
             if (docSnap.exists()) {
                 budget = docSnap.data().amount || 0;
-                budgetInput.value = budget || '';
+                budgetInput.value = budget ? budget : '';
                 renderAnalytics();
             }
         });
 
         onSnapshot(collection(db, "expenses"), (snapshot) => {
             expenses = [];
-            snapshot.forEach((doc) => {
-                expenses.push({ id: doc.id, ...doc.data() });
+            snapshot.forEach((docSnap) => {
+                expenses.push({ id: docSnap.id, ...docSnap.data() });
             });
             expenses.sort((a, b) => b.createdAt - a.createdAt);
             renderAll();
@@ -339,7 +338,7 @@
         await setDoc(doc(db, "settings", "budget"), { amount: val });
     });
 
-    // Form Submit
+    // Form Submit (Əlavə et və ya Yenilə)
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById('submit-btn');
@@ -358,14 +357,15 @@
         };
 
         try {
-            if (editId) {
-                await updateDoc(doc(db, "expenses", editId), expData);
+            if (editId && editId.trim() !== "") {
+                const docRef = doc(db, "expenses", editId);
+                await updateDoc(docRef, expData);
             } else {
                 await addDoc(collection(db, "expenses"), expData);
             }
             resetForm();
         } catch (err) {
-            alert('Xəta: ' + err.message);
+            alert('Xəta baş verdi: ' + err.message);
         } finally {
             submitBtn.disabled = false;
         }
@@ -401,7 +401,11 @@
 
     window.deleteExpense = async function(id) {
         if (confirm('Bu xərci silmək istədiyinizdən əminsiniz?')) {
-            await deleteDoc(doc(db, "expenses", id));
+            try {
+                await deleteDoc(doc(db, "expenses", id));
+            } catch (err) {
+                alert('Silinərkən xəta baş verdi: ' + err.message);
+            }
         }
     };
 
@@ -484,8 +488,8 @@
                 <div style="text-align:right;">
                     <div class="amount-tag">-${x.amount.toFixed(2)} ₼</div>
                     <div>
-                        <button onclick="editExpense('${x.id}')" class="action-btn edit-btn">✏️</button>
-                        <button onclick="deleteExpense('${x.id}')" class="action-btn delete-btn">🗑️</button>
+                        <button type="button" onclick="editExpense('${x.id}')" class="action-btn edit-btn">✏️</button>
+                        <button type="button" onclick="deleteExpense('${x.id}')" class="action-btn delete-btn">🗑️</button>
                     </div>
                 </div>
             </div>`;
