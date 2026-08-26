@@ -39,6 +39,7 @@
         .btn:active { background: #2B6CB0; }
         .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 8px 12px; }
+        .btn-cancel { background: #A0AEC0; margin-top: 8px; display: none; }
 
         .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
         .kpi-card { background: white; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border); }
@@ -163,6 +164,7 @@
                     <input type="text" id="exp-note" placeholder="Məsələn: Bravo market">
                 </div>
                 <button type="submit" id="submit-btn" class="btn">Əlavə Et</button>
+                <button type="button" id="cancel-edit-btn" class="btn btn-cancel" onclick="resetForm()">İmtina Et</button>
             </form>
         </div>
     </div>
@@ -302,7 +304,6 @@
     });
 
     function initAppListeners() {
-        // Büdcə dinləyicisi
         onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
             if (docSnap.exists()) {
                 budget = docSnap.data().amount || 0;
@@ -311,7 +312,6 @@
             }
         });
 
-        // Xərclər dinləyicisi
         onSnapshot(collection(db, "expenses"), (snapshot) => {
             expenses = [];
             snapshot.forEach((doc) => {
@@ -348,20 +348,26 @@
         try {
             if (editId) {
                 await updateDoc(doc(db, "expenses", editId), expData);
-                document.getElementById('edit-doc-id').value = '';
-                document.getElementById('form-title').innerText = '➕ Yeni Xərc Əlavə Et';
-                submitBtn.innerText = 'Əlavə Et';
             } else {
                 await addDoc(collection(db, "expenses"), expData);
             }
-            document.getElementById('exp-amount').value = '';
-            document.getElementById('exp-note').value = '';
+            resetForm();
         } catch (err) {
             alert('Xəta: ' + err.message);
         } finally {
             submitBtn.disabled = false;
         }
     });
+
+    window.resetForm = function() {
+        document.getElementById('edit-doc-id').value = '';
+        document.getElementById('exp-amount').value = '';
+        document.getElementById('exp-note').value = '';
+        document.getElementById('form-title').innerText = '➕ Yeni Xərc Əlavə Et';
+        document.getElementById('submit-btn').innerText = 'Əlavə Et';
+        document.getElementById('cancel-edit-btn').style.display = 'none';
+        dateInput.value = new Date().toISOString().split('T')[0];
+    };
 
     window.editExpense = function(id) {
         const exp = expenses.find(x => x.id === id);
@@ -377,6 +383,7 @@
 
         document.getElementById('form-title').innerText = '✏️ Xərci Redaktə Et';
         document.getElementById('submit-btn').innerText = 'Yenilə';
+        document.getElementById('cancel-edit-btn').style.display = 'block';
         switchTab('add', document.querySelectorAll('.nav-item')[0]);
     };
 
@@ -386,7 +393,7 @@
         }
     };
 
-    // JSON EXPORT (BACKUP)
+    // JSON EXPORT
     document.getElementById('btn-export').addEventListener('click', () => {
         const backupData = {
             budget: budget,
