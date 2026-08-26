@@ -18,14 +18,12 @@
             --success: #38A169;
             --border: #E2E8F0;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: var(--bg); color: var(--text); padding-bottom: 75px; -webkit-tap-highlight-color: transparent; }
         header { background: var(--primary-dark); color: white; padding: 12px 16px; text-align: center; font-weight: 700; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; }
         
         .user-profile { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
         .user-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid white; }
-
         .container { padding: 15px; max-width: 520px; margin: auto; }
         .card { background: var(--card-bg); border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid var(--border); }
         .card h3 { font-size: 1rem; color: var(--primary-dark); margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
@@ -34,39 +32,32 @@
         label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #4A5568; }
         input, select { width: 100%; padding: 12px; border: 1px solid #CBD5E0; border-radius: 10px; font-size: 0.95rem; outline: none; background: #FFF; }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15); }
-
         .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
         .btn:active { background: #2B6CB0; }
         .btn:disabled { background: #A0AEC0; cursor: not-allowed; }
         .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 8px 12px; }
         .btn-cancel { background: #A0AEC0; margin-top: 8px; display: none; }
-
         .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
         .kpi-card { background: white; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border); }
         .kpi-card .val { font-size: 1.3rem; font-weight: 800; color: var(--primary-dark); margin-top: 6px; }
         .kpi-card.balance { background: #E6FFFA; border-color: #B2F5EA; }
         .kpi-card.balance .val { color: #234E52; }
-
         .balance-box { background: #EBF8FF; border: 1px solid #BEE3F8; border-radius: 12px; padding: 14px; margin-top: 10px; text-align: center; }
         .balance-box .title { font-size: 0.8rem; color: #2B6CB0; font-weight: 700; margin-bottom: 4px; }
         .balance-box .val { font-size: 1.5rem; font-weight: 800; color: #2C5282; }
-
         .progress-bar-bg { background: #EDF2F7; border-radius: 8px; height: 8px; width: 100%; overflow: hidden; margin-top: 6px; }
         .progress-bar-fill { background: var(--primary); height: 100%; border-radius: 8px; }
-
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid var(--border); height: 65px; z-index: 999; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.70rem; color: var(--text-muted); cursor: pointer; }
         .nav-item.active { color: var(--primary); font-weight: 700; }
         .nav-item span { font-size: 1.2rem; margin-bottom: 2px; }
-
         .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 12px 0; }
         .person-tag { font-size: 0.75rem; background: #EBF8FF; color: #2B6CB0; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
         .amount-tag { font-weight: 700; color: var(--danger); font-size: 1rem; }
         
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
         .action-btn { background: none; border: none; font-size: 0.8rem; cursor: pointer; padding: 4px 6px; }
         .edit-btn { color: #3182CE; }
         .delete-btn { color: var(--danger); }
@@ -76,7 +67,6 @@
     </style>
 </head>
 <body>
-
 <!-- GOOGLE LOGIN MODAL -->
 <div id="auth-overlay">
     <div class="auth-card">
@@ -88,7 +78,6 @@
         </button>
     </div>
 </div>
-
 <header>
     <span>🏡 Xərc İzləmə</span>
     <div class="user-profile" id="user-profile" style="display:none;">
@@ -97,7 +86,6 @@
         <button id="btn-logout" class="action-btn" style="color: white; margin-left: 5px;">🚪</button>
     </div>
 </header>
-
 <div class="container">
     <!-- TAB 0: DASHBOARD -->
     <div id="tab-dashboard" class="tab-content active">
@@ -118,7 +106,6 @@
                 </div>
             </div>
         </div>
-
         <div class="card">
             <h3>⚡ Son Əməliyyatlar</h3>
             <div id="dash-recent-list">
@@ -126,7 +113,6 @@
             </div>
         </div>
     </div>
-
     <!-- TAB 1: DAXİLETMƏ -->
     <div id="tab-add" class="tab-content">
         <div class="card">
@@ -140,7 +126,6 @@
                 <div class="val" id="main-current-balance">0.00 ₼</div>
             </div>
         </div>
-
         <div class="card">
             <h3 id="form-title">➕ Yeni Xərc Əlavə Et</h3>
             <form id="expense-form">
@@ -172,17 +157,17 @@
                     <select id="exp-category" required>
                         <option value="🛒 Ərzaq / Market">🛒 Ərzaq / Market</option>
                         <option value="⚡ Kommunal (İşıq, Qaz, Su)">⚡ Kommunal (İşıq, Qaz, Su)</option>
-                        <option value="🚌 Nəqliyyat">🚌 Nəqliyyat </option>
+                        <option value="🚌 Nəqliyyat">🚌 Nəqliyyat</option>
                         <option value="🚕 Taksi">🚕 Taksi</option>
                         <option value="📱 Mobil / İnternet / TV">📱 Mobil / İnternet / TV</option>
-                        <option value="☕ Restoran">☕ Restoran </option>
+                        <option value="☕ Restoran">☕ Restoran</option>
                         <option value="🏋️ Fitnes / İdman">🏋️ Fitnes / İdman</option>
-                        <option value="🏋️ Sağlamlıq">🏋️ Sağlamlıq </option>
-                        <option value="💊 Aptek">💊 Aptek </option>
+                        <option value="🏋️ Sağlamlıq">🏋️ Sağlamlıq</option>
+                        <option value="💊 Aptek">💊 Aptek</option>
                         <option value="👔 Geyim / Şəxsi Qayğı">👔 Geyim / Şəxsi Qayğı</option>
                         <option value="🏠 Ev / Təmir / Məişət">🏠 Ev / Təmir / Məişət</option>
                         <option value="🎮 Əyləncə / Asudə Vaxt">🎮 Əyləncə / Asudə Vaxt</option>
-                        <option value="🎓 Təhsil ">🎓 Təhsil</option>
+                        <option value="🎓 Təhsil">🎓 Təhsil</option>
                         <option value="🎓 Kitab">🎓 Kitab</option>
                         <option value="📦 Digər Xərclər">📦 Digər Xərclər</option>
                     </select>
@@ -203,7 +188,6 @@
             </form>
         </div>
     </div>
-
     <!-- TAB 2: ANALİTİKA -->
     <div id="tab-analytics" class="tab-content">
         <div class="kpi-grid">
@@ -216,18 +200,15 @@
                 <div class="val" id="kpi-balance">0.00 ₼</div>
             </div>
         </div>
-
         <div class="card">
             <h3>👥 Şəxslər üzrə Xərc</h3>
             <div id="person-summary"></div>
         </div>
-
         <div class="card">
             <h3>🗂️ Kateqoriyalar üzrə Xərc</h3>
             <div id="category-summary"></div>
         </div>
     </div>
-
     <!-- TAB 3: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
     <div id="tab-history" class="tab-content">
         <div class="card">
@@ -235,14 +216,12 @@
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin.</p>
             <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
         </div>
-
         <div class="card">
             <h3>📜 Əməliyyat Tarixçəsi</h3>
             <div id="history-list"></div>
         </div>
     </div>
 </div>
-
 <div class="nav-bar">
     <div class="nav-item active" onclick="switchTab('dashboard', this)">
         <span>🏠</span> Dashboard
@@ -258,7 +237,6 @@
     </div>
 </div>
 
-<!-- Firebase SDK v10 Modular -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
@@ -294,7 +272,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-
     enableIndexedDbPersistence(db).catch(() => {});
 
     let currentUser = null;
@@ -312,6 +289,7 @@
 
     dateInput.value = new Date().toISOString().split('T')[0];
 
+    // Yalnız rəqəm, nöqtə və vergül
     [budgetInput, expenseAmountInput].forEach(input => {
         input.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9.,]/g, '');
@@ -343,16 +321,23 @@
             currentUser = null;
             authOverlay.style.display = 'flex';
             userProfile.style.display = 'none';
+            expenses = [];
+            budget = 0;
+            renderAll();
         }
     });
 
     function initAppListeners() {
         onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
             if (docSnap.exists()) {
-                budget = docSnap.data().amount || 0;
-                budgetInput.value = budget ? budget : '';
-                renderAll();
+                budget = parseFloat(docSnap.data().amount) || 0;
+            } else {
+                budget = 0;
             }
+            budgetInput.value = budget ? budget : '';
+            renderAll();
+        }, (err) => {
+            console.error("Budget xətası:", err);
         });
 
         onSnapshot(collection(db, "expenses"), (snapshot) => {
@@ -360,17 +345,23 @@
             snapshot.forEach((docSnap) => {
                 expenses.push({ id: docSnap.id, ...docSnap.data() });
             });
-            expenses.sort((a, b) => b.createdAt - a.createdAt);
+            expenses.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             renderAll();
+        }, (err) => {
+            console.error("Expenses xətası:", err);
         });
     }
 
     budgetInput.addEventListener('change', async (e) => {
         const val = parseFloat(e.target.value.replace(',', '.')) || 0;
-        await setDoc(doc(db, "settings", "budget"), { amount: val });
+        try {
+            await setDoc(doc(db, "settings", "budget"), { amount: val });
+        } catch (err) {
+            alert("Büdcə saxlanılmadı: " + err.message);
+        }
     });
 
-    // Optimallaşdırılmış Submit funksiyası
+    // ========== ƏSAS DÜZƏLİŞ: Submit ==========
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -379,18 +370,13 @@
         const amountRaw = document.getElementById('exp-amount').value.trim().replace(',', '.');
         const amountVal = parseFloat(amountRaw);
 
-        // Məbləğ yoxlaması
         if (!amountRaw || isNaN(amountVal) || amountVal <= 0) {
             alert("Düzgün məbləğ daxil edin (məsələn: 25.50)");
-            submitBtn.disabled = false;
             return;
         }
 
-        if ("vibrate" in navigator) {
-            navigator.vibrate(40);
-        }
+        if ("vibrate" in navigator) navigator.vibrate(40);
 
-        // Düyməni dərhal bağla
         submitBtn.disabled = true;
         const originalText = submitBtn.innerText;
         submitBtn.innerText = "Saxlanılır...";
@@ -416,11 +402,16 @@
         } catch (err) {
             console.error(err);
             alert('Xəta baş verdi: ' + err.message);
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
         } finally {
-            if (submitBtn.disabled) {
+            // Təhlükəsizlik şəbəkəsi – düymə heç vaxt boz qalmır
+            setTimeout(() => {
                 submitBtn.disabled = false;
-                submitBtn.innerText = document.getElementById('edit-doc-id').value ? 'Yenilə' : 'Əlavə Et';
-            }
+                if (!document.getElementById('edit-doc-id').value) {
+                    submitBtn.innerText = 'Əlavə Et';
+                }
+            }, 500);
         }
     });
 
@@ -429,11 +420,11 @@
         document.getElementById('exp-amount').value = '';
         document.getElementById('exp-note').value = '';
         document.getElementById('form-title').innerText = '➕ Yeni Xərc Əlavə Et';
-        
-        const submitBtn = document.getElementById('submit-btn');
-        submitBtn.innerText = 'Əlavə Et';
-        submitBtn.disabled = false;
-        
+
+        const btn = document.getElementById('submit-btn');
+        btn.innerText = 'Əlavə Et';
+        btn.disabled = false;
+
         document.getElementById('cancel-edit-btn').style.display = 'none';
         dateInput.value = new Date().toISOString().split('T')[0];
     };
@@ -458,13 +449,12 @@
     };
 
     window.deleteExpense = async function(id) {
-        if (confirm('Bu xərci silmək istədiyinizdən əminsiniz?')) {
-            try {
-                await deleteDoc(doc(db, "expenses", id));
-                resetForm();
-            } catch (err) {
-                alert('Silinərkən xəta baş verdi: ' + err.message);
-            }
+        if (!confirm('Bu xərci silmək istədiyinizdən əminsiniz?')) return;
+        try {
+            await deleteDoc(doc(db, "expenses", id));
+            resetForm();
+        } catch (err) {
+            alert('Silinərkən xəta baş verdi: ' + err.message);
         }
     };
 
@@ -492,7 +482,7 @@
     };
 
     function renderDashboard() {
-        const total = expenses.reduce((sum, item) => sum + item.amount, 0);
+        const total = expenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
         const currentBalance = budget - total;
 
         document.getElementById('dash-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
@@ -502,6 +492,7 @@
         const recent = expenses.slice(0, 5);
         let rHTML = '';
         recent.forEach(x => {
+            const amt = (parseFloat(x.amount) || 0).toFixed(2);
             rHTML += `
             <div class="history-item">
                 <div>
@@ -511,7 +502,7 @@
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div class="amount-tag">-${x.amount.toFixed(2)} ₼</div>
+                    <div class="amount-tag">-${amt} ₼</div>
                 </div>
             </div>`;
         });
@@ -519,15 +510,18 @@
     }
 
     function renderAnalytics() {
-        const total = expenses.reduce((sum, item) => sum + item.amount, 0);
+        const total = expenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
         const currentBalance = budget - total;
 
         document.getElementById('kpi-total').innerText = total.toFixed(2) + ' ₼';
         document.getElementById('kpi-balance').innerText = currentBalance.toFixed(2) + ' ₼';
         document.getElementById('main-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
 
+        // Şəxslər
         const pSummary = {};
-        expenses.forEach(x => { pSummary[x.person] = (pSummary[x.person] || 0) + x.amount; });
+        expenses.forEach(x => {
+            pSummary[x.person] = (pSummary[x.person] || 0) + (parseFloat(x.amount) || 0);
+        });
         let pHTML = '';
         for (let p in pSummary) {
             const pct = total > 0 ? ((pSummary[p] / total) * 100).toFixed(1) : 0;
@@ -542,8 +536,11 @@
         }
         document.getElementById('person-summary').innerHTML = pHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
 
+        // Kateqoriyalar
         const cSummary = {};
-        expenses.forEach(x => { cSummary[x.category] = (cSummary[x.category] || 0) + x.amount; });
+        expenses.forEach(x => {
+            cSummary[x.category] = (cSummary[x.category] || 0) + (parseFloat(x.amount) || 0);
+        });
         let cHTML = '';
         for (let c in cSummary) {
             const pct = total > 0 ? ((cSummary[c] / total) * 100).toFixed(1) : 0;
@@ -562,6 +559,7 @@
     function renderHistory() {
         let hHTML = '';
         expenses.forEach(x => {
+            const amt = (parseFloat(x.amount) || 0).toFixed(2);
             hHTML += `
             <div class="history-item">
                 <div>
@@ -571,7 +569,7 @@
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div class="amount-tag">-${x.amount.toFixed(2)} ₼</div>
+                    <div class="amount-tag">-${amt} ₼</div>
                     <div>
                         <button type="button" onclick="editExpense('${x.id}')" class="action-btn edit-btn">✏️</button>
                         <button type="button" onclick="deleteExpense('${x.id}')" class="action-btn delete-btn">🗑️</button>
