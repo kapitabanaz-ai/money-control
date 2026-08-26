@@ -289,7 +289,6 @@
 
     dateInput.value = new Date().toISOString().split('T')[0];
 
-    // Yalnız rəqəm, nöqtə və vergül
     [budgetInput, expenseAmountInput].forEach(input => {
         input.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9.,]/g, '');
@@ -361,7 +360,6 @@
         }
     });
 
-    // ========== ƏSAS DÜZƏLİŞ: Submit ==========
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -378,7 +376,6 @@
         if ("vibrate" in navigator) navigator.vibrate(40);
 
         submitBtn.disabled = true;
-        const originalText = submitBtn.innerText;
         submitBtn.innerText = "Saxlanılır...";
 
         const expData = {
@@ -398,20 +395,17 @@
             } else {
                 await addDoc(collection(db, "expenses"), expData);
             }
-            resetForm();
+            // Uğurla yazıldıqdan sonra formanı tamamilə təmizləyirik və düyməni aktivləşdiririk
+            window.resetForm();
         } catch (err) {
             console.error(err);
             alert('Xəta baş verdi: ' + err.message);
-            submitBtn.disabled = false;
-            submitBtn.innerText = originalText;
         } finally {
-            // Təhlükəsizlik şəbəkəsi – düymə heç vaxt boz qalmır
-            setTimeout(() => {
-                submitBtn.disabled = false;
-                if (!document.getElementById('edit-doc-id').value) {
-                    submitBtn.innerText = 'Əlavə Et';
-                }
-            }, 500);
+            // Hər ehtimala qarşı düyməni həmişə aktivləşdiririk
+            submitBtn.disabled = false;
+            if (!document.getElementById('edit-doc-id').value) {
+                submitBtn.innerText = 'Əlavə Et';
+            }
         }
     });
 
@@ -452,7 +446,7 @@
         if (!confirm('Bu xərci silmək istədiyinizdən əminsiniz?')) return;
         try {
             await deleteDoc(doc(db, "expenses", id));
-            resetForm();
+            window.resetForm();
         } catch (err) {
             alert('Silinərkən xəta baş verdi: ' + err.message);
         }
@@ -517,7 +511,6 @@
         document.getElementById('kpi-balance').innerText = currentBalance.toFixed(2) + ' ₼';
         document.getElementById('main-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
 
-        // Şəxslər
         const pSummary = {};
         expenses.forEach(x => {
             pSummary[x.person] = (pSummary[x.person] || 0) + (parseFloat(x.amount) || 0);
@@ -536,7 +529,6 @@
         }
         document.getElementById('person-summary').innerHTML = pHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
 
-        // Kateqoriyalar
         const cSummary = {};
         expenses.forEach(x => {
             cSummary[x.category] = (cSummary[x.category] || 0) + (parseFloat(x.amount) || 0);
@@ -569,7 +561,7 @@
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div class="amount-tag">-${amt} ₼</div>
+                    <div class="amount-`+ `tag">-${amt} ₼</div>
                     <div>
                         <button type="button" onclick="editExpense('${x.id}')" class="action-btn edit-btn">✏️</button>
                         <button type="button" onclick="deleteExpense('${x.id}')" class="action-btn delete-btn">🗑️</button>
