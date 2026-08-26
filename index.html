@@ -40,6 +40,7 @@
         .btn:disabled { background: #A0AEC0; cursor: not-allowed; opacity: 0.7; }
         .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 8px 12px; }
+        .btn-success { background: var(--success); color: white; }
         .btn-cancel { background: #A0AEC0; margin-top: 8px; display: none; }
 
         .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -224,12 +225,17 @@
         </div>
     </div>
 
-    <!-- TAB 3: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
+    <!-- TAB 3: TARİXÇƏ VƏ YEDƏKLƏMƏ / İDXAL -->
     <div id="tab-history" class="tab-content">
         <div class="card">
-            <h3>💾 Backup / Yedəkləmə</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin.</p>
-            <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
+            <h3>💾 Backup və İdxal (Import)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Köhnə proqramın CSV və ya JSON faylını Firebase bazasına köçürün.</p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button id="btn-export" class="btn btn-outline" style="flex: 1;">📥 Məlumatları Endir</button>
+                <label for="import-file" class="btn btn-success" style="flex: 1; text-align: center; cursor: pointer; display: inline-block; padding: 10px;">📤 Bazaya Yüklə (CSV/JSON)</label>
+                <input type="file" id="import-file" accept=".csv,.json" style="display: none;">
+            </div>
+            <div id="import-status" style="font-size: 0.8rem; color: var(--primary); margin-top: 8px; font-weight: 600;"></div>
         </div>
 
         <div class="card">
@@ -273,6 +279,7 @@
         doc, 
         setDoc,
         updateDoc,
+        writeBatch,
         enableIndexedDbPersistence 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -315,7 +322,6 @@
         });
     });
 
-    // İstənilən input və ya select dəyişdikdə düymənin kilidini avtomatik açan qoruyucu
     expenseForm.querySelectorAll('input, select').forEach(element => {
         element.addEventListener('input', () => { if(submitBtn.disabled) submitBtn.disabled = false; });
         element.addEventListener('change', () => { if(submitBtn.disabled) submitBtn.disabled = false; });
@@ -373,7 +379,6 @@
         await setDoc(doc(db, "settings", "budget"), { amount: val });
     });
 
-    // Qətiyyən donmamaq üçün optimallaşdırılmış Submit funksiyası
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -381,7 +386,6 @@
         const amountRaw = document.getElementById('exp-amount').value.trim();
         const amountVal = parseFloat(amountRaw);
 
-        // Məbləğ yoxlaması
         if (!amountRaw || isNaN(amountVal) || amountVal <= 0) {
             alert("Düzgün məbləğ daxil edin (məsələn: 25.50)");
             return;
@@ -391,7 +395,6 @@
             navigator.vibrate(40);
         }
 
-        // Düyməni dərhal bağla
         submitBtn.disabled = true;
         const originalText = submitBtn.innerText;
         submitBtn.innerText = "Saxlanılır...";
@@ -413,7 +416,7 @@
             } else {
                 await addDoc(collection(db, "expenses"), expData);
             }
-            resetForm();         // uğurlu olanda formu təmizləyir
+            resetForm();
         } catch (err) {
             console.error(err);
             alert('Xəta baş verdi: ' + err.message);
@@ -434,7 +437,7 @@
         document.getElementById('form-title').innerText = '➕ Yeni Xərc Əlavə Et';
         
         submitBtn.innerText = 'Əlavə Et';
-        submitBtn.disabled = false;         // mütləq aktiv et
+        submitBtn.disabled = false;
         
         document.getElementById('cancel-edit-btn').style.display = 'none';
         dateInput.value = new Date().toISOString().split('T')[0];
@@ -484,6 +487,157 @@
         downloadAnchor.click();
         downloadAnchor.remove();
     });
+
+    // -------------------------------------------------------------
+    // AUTOMATIC DATA IMPORT & PARSING ENGINE (CSV & JSON)
+    // -------------------------------------------------------------
+    const CATEGORY_MAP = {
+      '🛒 Ərzaq / Market': ['market', 'corek', 'et', 'slavyanka', 'food', 'bolmart', 'neptun market', 'meyve', 'qatiq', 'shokolad', 'cerez', 'dondurma', 'toyuq', 'pive', 'kofe'],
+      '⚡ Kommunal (İşıq, Qaz, Su)': ['kommunal', 'energy / water', 'azeriwiq', 'azersu', 'azeristilik', 'telefon pulu'],
+      '🚕 Nəqliyyat / Taksi / Yanacaq': ['taxi', 'yol pulu', 'nəqliyyat', 'taksi', 'benzin', 'yanacaq'],
+      '📱 Mobil / İnternet / TV': ['mobil', 'internet', 'tv', 'azercell', 'bakcell', 'nar'],
+      '☕ Restoran / Kafe / Çatdırılma': ['iwde nahar', 'party', 'doner', 'kafe', 'kabab time', 'pizza time', 'tort', 'lahmacun'],
+      '💊 Sağlamlıq / Aptek': ['derman', 'sağlamlıq', 'hekim', 'analiz', 'hb guven', 'aptek'],
+      '👔 Geyim / Şəxsi Qayğı': ['clothes', 'geyim', 'pampers', 'shampun', 'lazer', 'ayaqqabi'],
+      '🏠 Ev / Təmir / Məişət': ['house', 'ev', 'temir', 'kommunal 19/49', 'lift pulu'],
+      '🎮 Əyləncə / Asudə Vaxt': ['travel', 'summer vacation', 'holiday', 'eylence', 'deniz', 'tur'],
+      '🎓 Təhsil / İT / Kitab': ['education', 'tehsil', 'bagca pulu', 'kitab', 'kurs']
+    };
+
+    const PERSON_MAP = {
+      'cavid': '👨‍💼 Javid', 'javid': '👨‍💼 Javid',
+      'turana': '👩‍💼 Turanə', 'turanə': '👩‍💼 Turanə',
+      'kenan': '👦 Kənan', 'kənan': '👦 Kənan',
+      'valide': '👩 Validə', 'validə': '👩 Validə',
+      'konul': '👩 Könül', 'könül': '👩 Könül',
+      'buzovna': '🏡 Buzovna', '19/49': '🏡 19/49', '21/27': '🏡 21/27'
+    };
+
+    document.getElementById('import-file').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const statusDiv = document.getElementById('import-status');
+        statusDiv.innerText = "⏳ Fayl oxunur və təmizlənir...";
+
+        const reader = new FileReader();
+        reader.onload = async function(event) {
+            try {
+                const text = event.target.result;
+                let parsedExpenses = [];
+
+                if (file.name.endsWith('.json')) {
+                    const jsonData = JSON.parse(text);
+                    parsedExpenses = jsonData.expenses || jsonData;
+                } else {
+                    parsedExpenses = parseCsvData(text);
+                }
+
+                if (!parsedExpenses || parsedExpenses.length === 0) {
+                    statusDiv.innerText = "❌ Faylda uyğun məlumat tapılmadı.";
+                    return;
+                }
+
+                statusDiv.innerText = `⏳ ${parsedExpenses.length} ədəd məlumat Firebase-ə yüklənir...`;
+                
+                // Firestore Write Batch (500 ədədlik hissələrlə)
+                let batch = writeBatch(db);
+                let count = 0;
+
+                for (let exp of parsedExpenses) {
+                    const docRef = doc(collection(db, "expenses"));
+                    batch.set(docRef, {
+                        date: exp.date || new Date().toISOString().split('T')[0],
+                        person: exp.person || '🏡 Ümumi ailə',
+                        amount: parseFloat(exp.amount) || 0,
+                        category: exp.category || '📦 Digər Xərclər',
+                        pay: exp.pay || '💳 Kart',
+                        note: exp.note || '',
+                        createdBy: currentUser ? currentUser.email : 'Imported',
+                        createdAt: exp.createdAt || Date.now()
+                    });
+
+                    count++;
+                    if (count % 450 === 0) {
+                        await batch.commit();
+                        batch = writeBatch(db);
+                    }
+                }
+                
+                if (count % 450 !== 0) {
+                    await batch.commit();
+                }
+
+                statusDiv.innerText = `✅ Uğurla ${parsedExpenses.length} ədəd xərc bazaya köçürüldü!`;
+                alert(`✅ Uğurla ${parsedExpenses.length} ədəd xərc bazaya əlavə olundu!`);
+            } catch (err) {
+                console.error(err);
+                statusDiv.innerText = "❌ Yükləmə zamanı xəta baş verdi: " + err.message;
+            }
+        };
+
+        reader.readAsText(file);
+    });
+
+    function parseCsvData(csvText) {
+        const lines = csvText.split(/\r?\n/);
+        if (lines.length < 2) return [];
+
+        const results = [];
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            const parts = line.split(';');
+            const rawType = parts[1] ? parts[1].trim() : 'Expense';
+            if (rawType === 'Income') continue; // Yalnız xərcləri idxal edirik
+
+            const rawDate = parts[0] ? parts[0].trim() : '';
+            const rawAmount = parts[2] ? parseFloat(parts[2].replace(',', '.')) : 0;
+            const rawTitle = parts[4] ? parts[4].trim() : '';
+            const rawPerson = parts[5] ? parts[5].trim() : '';
+            const rawAccount = parts[6] ? parts[6].trim() : '';
+            const rawCounterAccount = parts[7] ? parts[7].trim() : '';
+            const rawCategory = parts[8] ? parts[8].trim() : '';
+            const rawNote = parts[9] ? parts[9].trim() : '';
+
+            // 1. Şəxs təyini
+            let finalPerson = '🏡 Ümumi ailə';
+            const catKey = rawCategory.toLowerCase();
+            const personKey = rawPerson.toLowerCase();
+
+            if (PERSON_MAP[catKey]) finalPerson = PERSON_MAP[catKey];
+            else if (PERSON_MAP[personKey]) finalPerson = PERSON_MAP[personKey];
+
+            // 2. Kateqoriya təyini
+            let finalCategory = '📦 Digər Xərclər';
+            const searchText = `${rawCategory} ${rawTitle} ${rawNote}`.toLowerCase();
+
+            for (const [catName, keywords] of Object.entries(CATEGORY_MAP)) {
+                if (keywords.some(kw => searchText.includes(kw))) {
+                    finalCategory = catName;
+                    break;
+                }
+            }
+
+            // 3. Ödəniş üsulu
+            let finalPay = '💵 Nəqd';
+            if (rawCounterAccount.toLowerCase().includes('card') || rawAccount.toLowerCase().includes('card') || rawCounterAccount.toLowerCase().includes('kart')) {
+                finalPay = '💳 Kart';
+            }
+
+            results.push({
+                date: rawDate,
+                person: finalPerson,
+                amount: Math.abs(rawAmount),
+                category: finalCategory,
+                pay: finalPay,
+                note: rawNote || rawTitle || rawCategory,
+                createdAt: Date.now() - (lines.length - i) * 1000
+            });
+        }
+        return results;
+    }
 
     window.switchTab = function(tabName, el) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
