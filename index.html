@@ -360,8 +360,10 @@
         }
     });
 
-    expenseForm.addEventListener('submit', async (e) => {
+    // ===================== FORM SUBMIT =====================
+    async function handleFormSubmit(e) {
         e.preventDefault();
+        e.stopPropagation();
 
         const submitBtn = document.getElementById('submit-btn');
         const editId = document.getElementById('edit-doc-id').value.trim();
@@ -403,8 +405,18 @@
             submitBtn.disabled = false;
             submitBtn.innerText = document.getElementById('edit-doc-id').value ? 'Yenilə' : 'Əlavə Et';
         }
+    }
+
+    // Həm submit, həm də click event-ləri
+    expenseForm.addEventListener('submit', handleFormSubmit);
+    expenseForm.addEventListener('click', function (e) {
+        if (e.target && e.target.id === 'submit-btn') {
+            e.preventDefault();
+            handleFormSubmit(e);
+        }
     });
 
+    // ===================== RESET FORM =====================
     window.resetForm = function() {
         document.getElementById('edit-doc-id').value = '';
         document.getElementById('exp-amount').value = '';
@@ -421,6 +433,7 @@
         dateInput.value = new Date().toISOString().split('T')[0];
     };
 
+    // ===================== EDIT & DELETE =====================
     window.editExpense = function(id) {
         const exp = expenses.find(x => x.id === id);
         if (!exp) return;
@@ -472,7 +485,6 @@
         document.getElementById('tab-' + tabName).classList.add('active');
         if (el) el.classList.add('active');
         
-        // Hər dəfə tab dəyişəndə düymənin aktiv olduğundan əmin oluruq
         const btn = document.getElementById('submit-btn');
         if (btn) btn.disabled = false;
         
@@ -547,40 +559,4 @@
                     <strong>${cSummary[c].toFixed(2)} ₼ (${pct}%)</strong>
                 </div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%; background:#4299E1;"></div></div>
-            </div>`;
-        }
-        document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
-    }
-
-    function renderHistory() {
-        let hHTML = '';
-        expenses.forEach(x => {
-            const amt = (parseFloat(x.amount) || 0).toFixed(2);
-            hHTML += `
-            <div class="history-item">
-                <div>
-                    <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
-                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
-                        Tarix: ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''}
-                    </div>
-                </div>
-                <div style="text-align:right;">
-                    <div class="amount-`+ `tag">-${amt} ₼</div>
-                    <div>
-                        <button type="button" onclick="editExpense('${x.id}')" class="action-btn edit-btn">✏️</button>
-                        <button type="button" onclick="deleteExpense('${x.id}')" class="action-btn delete-btn">🗑️</button>
-                    </div>
-                </div>
-            </div>`;
-        });
-        document.getElementById('history-list').innerHTML = hHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib.</p>';
-    }
-
-    function renderAll() {
-        renderDashboard();
-        renderAnalytics();
-        renderHistory();
-    }
-</script>
-</body>
-</html>
+           
