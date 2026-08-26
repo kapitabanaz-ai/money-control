@@ -35,7 +35,7 @@
         input, select { width: 100%; padding: 12px; border: 1px solid #CBD5E0; border-radius: 10px; font-size: 0.95rem; outline: none; background: #FFF; }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15); }
 
-        .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
+        .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1rem; font-weight: 700; border-radius: 10px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
         .btn:active { background: #1A365D; transform: scale(0.98); }
         .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 8px 12px; }
@@ -104,6 +104,7 @@
             <h3>💵 Başlanğıc Balans / Büdcə</h3>
             <div class="form-group">
                 <label>Cari Balansı Daxil Et (₼)</label>
+                <!-- YALNIZ RƏQƏM İNPUTU -->
                 <input type="number" id="main-budget-input" inputmode="decimal" pattern="[0-9]*" step="0.01" placeholder="Məsələn: 1000.00">
             </div>
             <div class="balance-box">
@@ -122,18 +123,19 @@
                 </div>
                 <div class="form-group">
                     <label>👤 Şəxs</label>
+                    <!-- VALUE HİSSƏLƏRİ SADƏLƏŞDİRİLDİ Kİ, TARİXÇƏ VƏ FİERBASE DAXİLİNDƏ XƏTA YARATMASIN -->
                     <select id="exp-person" required>
-                        <option value="👤 Javid">👤 Javid</option>
-                        <option value="👩‍💼 Turanə">👩‍💼 Turanə</option>
-                        <option value="🧑 Kənan">🧑 Kənan</option>
-                        <option value="👩 Validə">👩 Validə</option>
-                        <option value="👧 Könül">👧 Könül</option>
-                        <option value="🏠 Ümumi ailə">🏠 Ümumi ailə</option>
+                        <option value="Javid">👤 Javid</option>
+                        <option value="Turanə">👩‍💼 Turanə</option>
+                        <option value="Kənan">🧑 Kənan</option>
+                        <option value="Validə">👩 Validə</option>
+                        <option value="Könül">👧 Könül</option>
+                        <option value="Ümumi ailə">🏠 Ümumi ailə</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>💰 Məbləğ (₼)</label>
-                    <!-- YALNIZ RƏQƏM KLAVİATURASI ÜÇÜN inputmode VƏ pattern İLƏ DÜZƏLİŞ -->
+                    <!-- YALNIZ RƏQƏM KLAVİATURASI ÜÇÜN inputmode İLƏ TƏNZİMLƏMƏ -->
                     <input type="number" step="0.01" id="exp-amount" inputmode="decimal" pattern="[0-9]*" placeholder="0.00" required>
                 </div>
                 <div class="form-group">
@@ -274,7 +276,7 @@
 
     dateInput.value = new Date().toISOString().split('T')[0];
 
-    // GOOGLE LOGIN / LOGOUT (Popup rejimi)
+    // GOOGLE LOGIN / LOGOUT
     document.getElementById('btn-login').addEventListener('click', async () => {
         const provider = new GoogleAuthProvider();
         try {
@@ -328,22 +330,27 @@
         await setDoc(doc(db, "settings", "budget"), { amount: val });
     });
 
-    // FORM SUBMIT (Limitsiz daxiletmə və Titrəyiş)
+    // FORM SUBMIT (Titrəyiş və Limitsiz Daxiletmə)
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        // TELEFONDA TİTRƏYİŞ (VIBRATION)
+
+        // 3. TİTRƏYİŞ (Vibration API)
         if (navigator.vibrate) {
-            navigator.vibrate(50);
+            navigator.vibrate(60);
         }
 
-        const submitBtn = document.getElementById('submit-btn');
         const editId = document.getElementById('edit-doc-id').value;
-        
+        const amountVal = parseFloat(document.getElementById('exp-amount').value);
+
+        if (isNaN(amountVal) || amountVal <= 0) {
+            alert("Zəhmət olmasa düzgün məbləğ daxil edin.");
+            return;
+        }
+
         const expData = {
             date: dateInput.value,
             person: document.getElementById('exp-person').value,
-            amount: parseFloat(document.getElementById('exp-amount').value),
+            amount: amountVal,
             category: document.getElementById('exp-category').value,
             pay: document.getElementById('exp-pay').value,
             note: document.getElementById('exp-note').value,
@@ -357,10 +364,9 @@
             } else {
                 await addDoc(collection(db, "expenses"), expData);
             }
-            // Məlumat daxil edildikdən dərhal sonra formanı sıfırla ki, növbəti xərci istənilən vaxt məhdudiyyətsiz yazmaq olsun
             resetForm();
         } catch (err) {
-            alert('Xəta: ' + err.message);
+            alert('Xəta baş verdi: ' + err.message);
         }
     });
 
@@ -430,15 +436,20 @@
         document.getElementById('kpi-balance').innerText = currentBalance.toFixed(2) + ' ₼';
         document.getElementById('main-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
 
+        // 2. ŞƏXSLƏR ÜZRƏ XƏRCLƏRİN DƏQİQ MƏBLƏĞ HESABLANMASI
         const pSummary = {};
-        expenses.forEach(x => { pSummary[x.person] = (pSummary[x.person] || 0) + x.amount; });
+        expenses.forEach(x => { 
+            const personName = x.person || 'Naməlum';
+            pSummary[personName] = (pSummary[personName] || 0) + x.amount; 
+        });
+        
         let pHTML = '';
         for (let p in pSummary) {
             const pct = total > 0 ? ((pSummary[p] / total) * 100).toFixed(1) : 0;
             pHTML += `
             <div style="margin-bottom: 10px;">
                 <div class="history-item" style="border:none; padding:4px 0;">
-                    <span>${p}</span>
+                    <span>👤 ${p}</span>
                     <strong>${pSummary[p].toFixed(2)} ₼ (${pct}%)</strong>
                 </div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%;"></div></div>
@@ -469,7 +480,7 @@
             hHTML += `
             <div class="history-item">
                 <div>
-                    <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
+                    <div><strong>${x.category}</strong> <span class="person-tag">👤 ${x.person}</span></div>
                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
                         Tarix: ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''}
                     </div>
