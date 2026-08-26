@@ -79,7 +79,7 @@
     </div>
 </div>
 <header>
-    <span>🏡 Monet Control</span>
+    <span>🏡 Xərc İzləmə</span>
     <div class="user-profile" id="user-profile" style="display:none;">
         <img id="user-img" class="user-avatar" src="" alt="User">
         <span id="user-name"></span>
@@ -128,15 +128,15 @@
         </div>
         <div class="card">
             <h3 id="form-title">➕ Yeni Xərc Əlavə Et</h3>
-            <form id="expense-form">
+            <div id="expense-form">
                 <input type="hidden" id="edit-doc-id">
                 <div class="form-group">
                     <label>📅 Tarix</label>
-                    <input type="date" id="exp-date" required>
+                    <input type="date" id="exp-date">
                 </div>
                 <div class="form-group">
                     <label>👤 Şəxs / Aidiyyatı</label>
-                    <select id="exp-person" required>
+                    <select id="exp-person">
                         <option value="👨‍💼 Javid">👨‍💼 Javid</option>
                         <option value="👩‍💼 Turanə">👩‍💼 Turanə</option>
                         <option value="👦 Kənan">👦 Kənan</option>
@@ -150,11 +150,11 @@
                 </div>
                 <div class="form-group">
                     <label>💰 Məbləğ (₼)</label>
-                    <input type="text" inputmode="decimal" id="exp-amount" placeholder="0.00" required>
+                    <input type="text" inputmode="decimal" id="exp-amount" placeholder="0.00">
                 </div>
                 <div class="form-group">
                     <label>🏷️ Kateqoriya</label>
-                    <select id="exp-category" required>
+                    <select id="exp-category">
                         <option value="🛒 Ərzaq / Market">🛒 Ərzaq / Market</option>
                         <option value="⚡ Kommunal (İşıq, Qaz, Su)">⚡ Kommunal (İşıq, Qaz, Su)</option>
                         <option value="🚌 Nəqliyyat">🚌 Nəqliyyat</option>
@@ -174,7 +174,7 @@
                 </div>
                 <div class="form-group">
                     <label>💳 Ödəniş Üsulu</label>
-                    <select id="exp-pay" required>
+                    <select id="exp-pay">
                         <option value="💳 Kart">💳 Kart</option>
                         <option value="💵 Nəqd">💵 Nəqd</option>
                     </select>
@@ -183,9 +183,9 @@
                     <label>📝 Qeyd</label>
                     <input type="text" id="exp-note" placeholder="Məsələn: Bravo market">
                 </div>
-                <button type="submit" id="submit-btn" class="btn">Əlavə Et</button>
+                <button type="button" id="submit-btn" class="btn">Əlavə Et</button>
                 <button type="button" id="cancel-edit-btn" class="btn btn-cancel" onclick="resetForm()">İmtina Et</button>
-            </form>
+            </div>
         </div>
     </div>
     <!-- TAB 2: ANALİTİKA -->
@@ -283,7 +283,6 @@
     const userImg = document.getElementById('user-img');
     const userName = document.getElementById('user-name');
     const budgetInput = document.getElementById('main-budget-input');
-    const expenseForm = document.getElementById('expense-form');
     const expenseAmountInput = document.getElementById('exp-amount');
     const dateInput = document.getElementById('exp-date');
 
@@ -298,7 +297,6 @@
     const loginBtn = document.getElementById('btn-login');
     if (loginBtn) {
         loginBtn.addEventListener('click', async () => {
-            console.log("Giriş düyməsi sıxıldı!");
             const provider = new GoogleAuthProvider();
             try {
                 await signInWithPopup(auth, provider);
@@ -365,9 +363,8 @@
         }
     });
 
-    async function handleFormSubmit(e) {
-        e.preventDefault();
-
+    // Birbaşa düymənin kliklənməsi ilə idarə olunan funksiya (form submit-dən çıxarıldı)
+    async function handleFormSubmit() {
         const submitBtn = document.getElementById('submit-btn');
         const editId = document.getElementById('edit-doc-id').value.trim();
         const amountRaw = document.getElementById('exp-amount').value.trim().replace(',', '.');
@@ -410,8 +407,8 @@
         }
     }
 
-    // Yalnız submit dinləyicisi saxlanıldı (təkrar klik konflikti aradan qaldırıldı)
-    expenseForm.addEventListener('submit', handleFormSubmit);
+    // Düyməyə birbaşa klik hadisəsi qoşulur
+    document.getElementById('submit-btn').addEventListener('click', handleFormSubmit);
 
     window.resetForm = function() {
         document.getElementById('edit-doc-id').value = '';
@@ -560,10 +557,11 @@
     }
 
     function renderHistory() {
-        let hHTML = '';
+        let hHTML = {};
+        let hHTML_str = '';
         expenses.forEach(x => {
             const amt = (parseFloat(x.amount) || 0).toFixed(2);
-            hHTML += `
+            hHTML_str += `
             <div class="history-item">
                 <div>
                     <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
@@ -580,7 +578,7 @@
                 </div>
             </div>`;
         });
-        document.getElementById('history-list').innerHTML = hHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki tarixçə yoxdur.</p>';
+        document.getElementById('history-list').innerHTML = hHTML_str || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki tarixçə yoxdur.</p>';
     }
 
     function renderAll() {
