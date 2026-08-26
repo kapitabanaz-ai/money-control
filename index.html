@@ -133,7 +133,7 @@
             <h3>💵 Başlanğıc Balans / Büdcə</h3>
             <div class="form-group">
                 <label>Cari Balansı Daxil Et (₼)</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="main-budget-input" placeholder="Məsələn: 1000.00">
+                <input type="text" inputmode="decimal" id="main-budget-input" placeholder="Məsələn: 1000.00">
             </div>
             <div class="balance-box">
                 <div class="title">⚡ Cari Qalan Balansınız</div>
@@ -165,7 +165,7 @@
                 </div>
                 <div class="form-group">
                     <label>💰 Məbləğ (₼)</label>
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" id="exp-amount" placeholder="0.00" required>
+                    <input type="text" inputmode="decimal" id="exp-amount" placeholder="0.00" required>
                 </div>
                 <div class="form-group">
                     <label>🏷️ Kateqoriya</label>
@@ -176,6 +176,7 @@
                         <option value="🚕 Taksi">🚕 Taksi</option>
                         <option value="📱 Mobil / İnternet / TV">📱 Mobil / İnternet / TV</option>
                         <option value="☕ Restoran">☕ Restoran </option>
+                        <option value="🏋️ Fitnes / İdman">🏋️ Fitnes / İdman</option>
                         <option value="🏋️ Sağlamlıq">🏋️ Sağlamlıq </option>
                         <option value="💊 Aptek">💊 Aptek </option>
                         <option value="👔 Geyim / Şəxsi Qayğı">👔 Geyim / Şəxsi Qayğı</option>
@@ -313,7 +314,7 @@
 
     [budgetInput, expenseAmountInput].forEach(input => {
         input.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9.]/g, '');
+            this.value = this.value.replace(/[^0-9.,]/g, '');
         });
     });
 
@@ -365,46 +366,62 @@
     }
 
     budgetInput.addEventListener('change', async (e) => {
-        const val = parseFloat(e.target.value) || 0;
+        const val = parseFloat(e.target.value.replace(',', '.')) || 0;
         await setDoc(doc(db, "settings", "budget"), { amount: val });
     });
 
     // Qətiyyən donmamaq üçün optimallaşdırılmış Submit funksiyası
     expenseForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
+        const submitBtn = document.getElementById('submit-btn');
+        const editId = document.getElementById('edit-doc-id').value.trim();
+        const amountRaw = document.getElementById('exp-amount').value.trim().replace(',', '.');
+        const amountVal = parseFloat(amountRaw);
+
+        // Məbləğ yoxlaması
+        if (!amountRaw || isNaN(amountVal) || amountVal <= 0) {
+            alert("Düzgün məbləğ daxil edin (məsələn: 25.50)");
+            document.getElementById('exp-amount').focus();
+            return;
+        }
+
         if ("vibrate" in navigator) {
             navigator.vibrate(40);
         }
 
-        const submitBtn = document.getElementById('submit-btn');
-        const editId = document.getElementById('edit-doc-id').value;
+        // Düyməni dərhal bağla
         submitBtn.disabled = true;
+        const originalText = submitBtn.innerText;
+        submitBtn.innerText = "Saxlanılır...";
 
         const expData = {
             date: dateInput.value,
             person: document.getElementById('exp-person').value,
-            amount: parseFloat(document.getElementById('exp-amount').value),
+            amount: amountVal,
             category: document.getElementById('exp-category').value,
             pay: document.getElementById('exp-pay').value,
-            note: document.getElementById('exp-note').value,
+            note: document.getElementById('exp-note').value.trim(),
             createdBy: currentUser ? currentUser.email : 'Naməlum',
             createdAt: Date.now()
         };
 
         try {
-            if (editId && editId.trim() !== "") {
-                const docRef = doc(db, "expenses", editId);
-                await updateDoc(docRef, expData);
+            if (editId) {
+                await updateDoc(doc(db, "expenses", editId), expData);
             } else {
                 await addDoc(collection(db, "expenses"), expData);
             }
-            resetForm();
+            resetForm();          // uğurlu olanda formu təmizləyir
         } catch (err) {
+            console.error(err);
             alert('Xəta baş verdi: ' + err.message);
         } finally {
-            // Hər hansı xəta olsa belə düyməni dərhal işlək vəziyyətə gətiririk
-            submitBtn.disabled = false;
+            // hər halda düyməni aktiv et (əlavə təhlükəsizlik)
+            if (submitBtn.disabled) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = document.getElementById('edit-doc-id').value ? 'Yenilə' : 'Əlavə Et';
+            }
         }
     });
 
@@ -413,8 +430,11 @@
         document.getElementById('exp-amount').value = '';
         document.getElementById('exp-note').value = '';
         document.getElementById('form-title').innerText = '➕ Yeni Xərc Əlavə Et';
-        document.getElementById('submit-btn').innerText = 'Əlavə Et';
-        document.getElementById('submit-btn').disabled = false;
+        
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.innerText = 'Əlavə Et';
+        submitBtn.disabled = false;         // mütləq aktiv et
+        
         document.getElementById('cancel-edit-btn').style.display = 'none';
         dateInput.value = new Date().toISOString().split('T')[0];
     };
