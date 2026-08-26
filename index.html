@@ -79,7 +79,7 @@
     </div>
 </div>
 <header>
-    <span>🏡 Xərc İzləmə</span>
+    <span>🏡 Monet Control</span>
     <div class="user-profile" id="user-profile" style="display:none;">
         <img id="user-img" class="user-avatar" src="" alt="User">
         <span id="user-name"></span>
@@ -367,7 +367,6 @@
 
     async function handleFormSubmit(e) {
         e.preventDefault();
-        e.stopPropagation();
 
         const submitBtn = document.getElementById('submit-btn');
         const editId = document.getElementById('edit-doc-id').value.trim();
@@ -411,13 +410,8 @@
         }
     }
 
+    // Yalnız submit dinləyicisi saxlanıldı (təkrar klik konflikti aradan qaldırıldı)
     expenseForm.addEventListener('submit', handleFormSubmit);
-    expenseForm.addEventListener('click', function (e) {
-        if (e.target && e.target.id === 'submit-btn') {
-            e.preventDefault();
-            handleFormSubmit(e);
-        }
-    });
 
     window.resetForm = function() {
         document.getElementById('edit-doc-id').value = '';
