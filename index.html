@@ -52,7 +52,7 @@
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.70rem; color: var(--text-muted); cursor: pointer; }
         .nav-item.active { color: var(--primary); font-weight: 700; }
         .nav-item span { font-size: 1.2rem; margin-bottom: 2px; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 12px 0; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 10px 0; }
         .person-tag { font-size: 0.75rem; background: #EBF8FF; color: #2B6CB0; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
         .amount-tag { font-weight: 700; color: var(--danger); font-size: 1rem; }
         
@@ -148,7 +148,6 @@
                         <option value="🏡 21/27">🏡 21/27</option>
                         <option value="🏡 19/49">🏡 19/49</option>
                         <option value="🏡 Buzovna">🏡 Buzovna</option>
-                        <option value="🛒 Market">🛒 Market</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -166,12 +165,14 @@
                         <option value="📱 İnternet">📱 İnternet</option>
                         <option value="☕ Restoran">☕ Restoran</option>
                         <option value="🏋️ Fitnes">🏋️ Fitnes</option>
+                        <option value="🏋️ Sağlamlıq">🏋️ Sağlamlıq</option>
                         <option value="💊 Aptek">💊 Aptek</option>
                         <option value="👔 Geyim / Şəxsi Qayğı">👔 Geyim / Şəxsi Qayğı</option>
                         <option value="🏠 Ev / Təmir / Məişət">🏠 Ev / Təmir / Məişət</option>
                         <option value="🎮 Əyləncə">🎮 Əyləncə</option>
                         <option value="🎓 Təhsil">🎓 Təhsil</option>
                         <option value="🎓 Kitab">🎓 Kitab</option>
+                        <option value="🎓 Bərbər">🎓 Bərbər</option>
                         <option value="📦 Digər Xərclər">📦 Digər Xərclər</option>
                     </select>
                 </div>
@@ -220,7 +221,7 @@
             <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
         </div>
         <div class="card">
-            <h3>📜 Əməliyyat Tarixçəsi</h3>
+            <h3>📜 Əməliyyat Tarixçəsi (Gündəlik)</h3>
             <div id="history-list"></div>
         </div>
     </div>
@@ -533,7 +534,6 @@
         document.getElementById('kpi-balance').innerText = currentBalance.toFixed(2) + ' ₼';
         document.getElementById('main-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
 
-        // 1. Şəxslər üzrə və onların hansı kateqoriyalara xərc çəkdiyi
         const pSummary = {};
         expenses.forEach(x => {
             if (!pSummary[x.person]) {
@@ -568,7 +568,6 @@
         }
         document.getElementById('person-summary').innerHTML = pHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
 
-        // 2. Kateqoriyalar üzrə və kimin bu kateqoriyaya xərc çəkdiyi
         const cSummary = {};
         expenses.forEach(x => {
             if (!cSummary[x.category]) {
@@ -605,26 +604,53 @@
     }
 
     function renderHistory() {
-        let hHTML_str = '';
+        const grouped = {};
         expenses.forEach(x => {
-            const amt = (parseFloat(x.amount) || 0).toFixed(2);
+            const d = x.date || 'Digər';
+            if (!grouped[d]) grouped[d] = [];
+            grouped[d].push(x);
+        });
+
+        const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+        let hHTML_str = '';
+
+        sortedDates.forEach(date => {
+            const dayItems = grouped[date];
+            const dayTotal = dayItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+
             hHTML_str += `
-            <div class="history-item">
-                <div>
-                    <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
-                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
-                        📅 ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''} | ✉️ ${x.createdBy || 'Naməlum'}
+            <div style="margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                <div style="color: #3182CE; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px;">
+                    📅 ${date}
+                </div>`;
+
+            dayItems.forEach(x => {
+                const amt = (parseFloat(x.amount) || 0).toFixed(2);
+                hHTML_str += `
+                <div class="history-item">
+                    <div>
+                        <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
+                            ${x.pay} ${x.note ? '| ' + x.note : ''} | ✉️ ${x.createdBy || 'Naməlum'}
+                        </div>
                     </div>
-                </div>
-                <div style="text-align:right;">
-                    <div class="amount-tag">-${amt} ₼</div>
-                    <div style="margin-top: 6px;">
-                        <button class="action-btn edit-btn" onclick="editExpense('${x.id}')">✏️ Düzəliş</button>
-                        <button class="action-btn delete-btn" onclick="deleteExpense('${x.id}')">🗑️ Sil</button>
+                    <div style="text-align:right;">
+                        <div class="amount-tag">-${amt} ₼</div>
+                        <div style="margin-top: 4px;">
+                            <button class="action-btn edit-btn" onclick="editExpense('${x.id}')">✏️ Düzəliş</button>
+                            <button class="action-btn delete-btn" onclick="deleteExpense('${x.id}')">🗑️ Sil</button>
+                        </div>
                     </div>
+                </div>`;
+            });
+
+            hHTML_str += `
+                <div style="text-align: right; font-weight: 850; color: var(--danger); font-size: 1rem; border-top: 1px dashed #CBD5E0; padding-top: 8px; margin-top: 8px;">
+                    -${dayTotal.toFixed(2)} ₼
                 </div>
             </div>`;
         });
+
         document.getElementById('history-list').innerHTML = hHTML_str || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki tarixçə yoxdur.</p>';
     }
 
