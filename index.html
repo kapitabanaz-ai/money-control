@@ -1,3 +1,8 @@
+Analitika bölməsində şəxs blokuna kliklədikdə həmin şəxsin seçilmiş ay üzrə **tarixlər üzrə detallı xərc siyahısını** (kateqoriya, qeyd və məbləğlə) açan/bağlayan (`accordion` tipli) funksionallıq əlavə edildi.
+
+Tam yenilənmiş kod:
+
+```html
 <!DOCTYPE html>
 <html lang="az">
 <head>
@@ -67,6 +72,8 @@
         .delete-btn { color: var(--danger); }
         
         .sub-breakdown { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; padding-left: 10px; border-left: 2px solid #CBD5E0; }
+        .clickable-person-row { cursor: pointer; user-select: none; }
+        .clickable-person-row:hover { background-color: rgba(43, 108, 176, 0.04); border-radius: 6px; }
         
         #auth-overlay { position: fixed; inset: 0; background: rgba(26, 54, 93, 0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .auth-card { background: white; padding: 24px; border-radius: 16px; text-align: center; width: 100%; max-width: 360px; }
@@ -221,7 +228,7 @@
             </div>
         </div>
         <div class="card">
-            <h3>👥 Seçilmiş Ay: Şəxslər üzrə Xərc və Kateqoriyalar</h3>
+            <h3>👥 Seçilmiş Ay: Şəxslər üzrə Xərc (Kliklə detallı bax)</h3>
             <div id="person-summary"></div>
         </div>
         <div class="card">
@@ -297,6 +304,7 @@
     let currentUser = null;
     let expenses = [];
     let budgetsByMonth = {}; // YYYY-MM formatında büdcələr
+    const expandedPersons = new Set();
     
     // Cari seçilmiş ay (YYYY-MM)
     const now = new Date();
@@ -311,6 +319,15 @@
         const [y, m] = ym.split('-');
         return `${monthNamesAZ[parseInt(m, 10) - 1]} ${y}`;
     }
+
+    window.togglePersonDetail = function(personName) {
+        if (expandedPersons.has(personName)) {
+            expandedPersons.delete(personName);
+        } else {
+            expandedPersons.add(personName);
+        }
+        renderAnalytics();
+    };
 
     window.changeMonth = function(delta) {
         const [y, m] = window.selectedYearMonth.split('-').map(Number);
@@ -642,6 +659,7 @@
         for (let p in pSummary) {
             const pTotal = pSummary[p].total;
             const pct = total > 0 ? ((pTotal / total) * 100).toFixed(1) : 0;
+            const isExpanded = expandedPersons.has(p);
             
             let catsHTML = '';
             for (let cat in pSummary[p].categories) {
@@ -651,14 +669,46 @@
                 </div>`;
             }
 
+            // Tarixlər üzrə detallı hesabat generasiyası
+            let dateBreakdownHTML = '';
+            if (isExpanded) {
+                const personExpenses = currentMonthExpenses.filter(x => x.person === p);
+                const groupedByDate = {};
+                personExpenses.forEach(x => {
+                    const d = x.date || 'Digər';
+                    if (!groupedByDate[d]) groupedByDate[d] = [];
+                    groupedByDate[d].push(x);
+                });
+                const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+                
+                sortedDates.forEach(date => {
+                    dateBreakdownHTML += `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #CBD5E0;">
+                        <div style="font-weight: 700; color: #2B6CB0; font-size: 0.78rem; margin-bottom: 3px;">📅 Tarix: ${date}</div>`;
+                    groupedByDate[date].forEach(item => {
+                        dateBreakdownHTML += `<div style="display: flex; justify-content: space-between; font-size: 0.75rem; padding-left: 6px; margin-bottom: 2px;">
+                            <span>${item.category} ${item.note ? '<i>(' + item.note + ')</i>' : ''}</span>
+                            <span style="font-weight: 600; color: var(--danger);">${parseFloat(item.amount).toFixed(2)} ₼</span>
+                        </div>`;
+                    });
+                    dateBreakdownHTML += `</div>`;
+                });
+                if (!dateBreakdownHTML) {
+                    dateBreakdownHTML = `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">Detallı qeyd yoxdur.</div>`;
+                }
+            }
+
             pHTML += `
             <div style="margin-bottom: 14px; background: #F8FAFC; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                <div class="history-item" style="border:none; padding:0 0 6px 0;">
-                    <strong>${p}</strong>
+                <div class="clickable-person-row" onclick="togglePersonDetail('${p.replace(/'/g, "\\'")}')" style="display:flex; justify-content:space-between; align-items:center; padding-bottom: 6px;">
+                    <div><strong>${p}</strong> <span style="font-size:0.7rem; color:var(--text-muted); margin-left:4px;">${isExpanded ? '▲ gizlə' : '▼ detallı'}</span></div>
                     <strong>${pTotal.toFixed(2)} ₼ (${pct}%)</strong>
                 </div>
                 <div class="progress-bar-bg" style="margin-bottom: 6px;"><div class="progress-bar-fill" style="width: ${pct}%;"></div></div>
                 <div class="sub-breakdown">${catsHTML}</div>
+                ${isExpanded ? `<div style="margin-top: 10px; background: #FFF; padding: 8px; border-radius: 6px; border: 1px solid #E2E8F0;">
+                    <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 4px;">🗓️ Tarixlər üzrə detallı hesabat:</div>
+                    ${dateBreakdownHTML}
+                </div>` : ''}
             </div>`;
         }
         document.getElementById('person-summary').innerHTML = pHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
@@ -758,3 +808,5 @@
 </script>
 </body>
 </html>
+
+```
