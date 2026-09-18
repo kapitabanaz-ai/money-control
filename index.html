@@ -1,3 +1,6 @@
+Bu tələbləri (cari ayın göstərilməsi, analitikada ay seçimi / əvvəlki aya keçid, hər ayın öz büdcə və xərc səhifəsi/görünüşü kimi ayrılması) dəstəkləyən yenilənmiş kod:
+
+```html
 <!DOCTYPE html>
 <html lang="az">
 <head>
@@ -28,6 +31,10 @@
         .card { background: var(--card-bg); border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid var(--border); }
         .card h3 { font-size: 1rem; color: var(--primary-dark); margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         
+        .month-selector-bar { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); padding: 10px 14px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border); font-weight: 700; color: var(--primary-dark); }
+        .month-selector-bar button { background: var(--primary); color: white; border: none; border-radius: 8px; width: 34px; height: 34px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .month-selector-bar button:active { background: var(--primary-dark); }
+
         .form-group { margin-bottom: 14px; }
         label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #4A5568; }
         input, select { width: 100%; padding: 12px; border: 1px solid #CBD5E0; border-radius: 10px; font-size: 0.95rem; outline: none; background: #FFF; font-family: "Aptos", Georgia, serif; }
@@ -91,10 +98,15 @@
 <div class="container">
     <!-- TAB 0: DASHBOARD -->
     <div id="tab-dashboard" class="tab-content active">
+        <div class="month-selector-bar">
+            <button onclick="changeMonth(-1)">◀</button>
+            <span id="dash-month-title">—</span>
+            <button onclick="changeMonth(1)">▶</button>
+        </div>
         <div class="card">
             <h3>📊 Ümumi Baxış (Dashboard)</h3>
             <div class="balance-box" style="margin-top: 0; margin-bottom: 14px;">
-                <div class="title">⚡ Cari Qalan Balansınız</div>
+                <div class="title">⚡ Cari Qalan Balansınız (<span class="dash-month-label">Cari ay</span>)</div>
                 <div class="val" id="dash-current-balance">0.00 ₼</div>
             </div>
             <div class="kpi-grid" style="margin-bottom: 0;">
@@ -103,13 +115,13 @@
                     <div class="val" id="dash-total-expense" style="font-size: 1.1rem;">0.00 ₼</div>
                 </div>
                 <div class="kpi-card balance">
-                    <div style="font-size:0.75rem; color:#234E52;">💵 Başlanğıc Büdcə</div>
+                    <div style="font-size:0.75rem; color:#234E52;">💵 Bu Ayın Büdcəsi</div>
                     <div class="val" id="dash-total-budget" style="font-size: 1.1rem;">0.00 ₼</div>
                 </div>
             </div>
         </div>
         <div class="card">
-            <h3>⚡ Son Əməliyyatlar</h3>
+            <h3>⚡ Bu Ayın Son Əməliyyatları</h3>
             <div id="dash-recent-list">
                 <p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib.</p>
             </div>
@@ -118,13 +130,13 @@
     <!-- TAB 1: DAXİLETMƏ -->
     <div id="tab-add" class="tab-content">
         <div class="card">
-            <h3>💵 Başlanğıc Balans / Büdcə</h3>
+            <h3>💵 Bu Ayın Başlanğıc Balansı / Büdcəsi</h3>
             <div class="form-group">
-                <label>Cari Balansı Daxil Et (₼)</label>
+                <label>Cari Ay Balansını Daxil Et (₼)</label>
                 <input type="text" inputmode="decimal" id="main-budget-input" placeholder="Məsələn: 1000.00">
             </div>
             <div class="balance-box">
-                <div class="title">⚡ Cari Qalan Balansınız</div>
+                <div class="title">⚡ Bu Ayın Qalan Balansı</div>
                 <div class="val" id="main-current-balance">0.00 ₼</div>
             </div>
         </div>
@@ -196,9 +208,14 @@
     </div>
     <!-- TAB 2: ANALİTİKA -->
     <div id="tab-analytics" class="tab-content">
+        <div class="month-selector-bar">
+            <button onclick="changeMonth(-1)">◀</button>
+            <span id="analytics-month-title">—</span>
+            <button onclick="changeMonth(1)">▶</button>
+        </div>
         <div class="kpi-grid">
             <div class="kpi-card">
-                <div style="font-size:0.75rem; color:var(--text-muted);">💸 Ümumi Xərc</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">💸 Seçilmiş Ayın Xərci</div>
                 <div class="val" id="kpi-total">0.00 ₼</div>
             </div>
             <div class="kpi-card balance">
@@ -207,11 +224,11 @@
             </div>
         </div>
         <div class="card">
-            <h3>👥 Şəxslər üzrə Xərc və Kateqoriyalar</h3>
+            <h3>👥 Seçilmiş Ay: Şəxslər üzrə Xərc və Kateqoriyalar</h3>
             <div id="person-summary"></div>
         </div>
         <div class="card">
-            <h3>🗂️ Kateqoriyalar üzrə Xərc və Kimin Xərclədiyi</h3>
+            <h3>🗂️ Seçilmiş Ay: Kateqoriyalar üzrə Xərc və Kimin Xərclədiyi</h3>
             <div id="category-summary"></div>
         </div>
     </div>
@@ -282,7 +299,37 @@
 
     let currentUser = null;
     let expenses = [];
-    let budget = 0;
+    let budgetsByMonth = {}; // YYYY-MM formatında büdcələr
+    
+    // Cari seçilmiş ay (YYYY-MM)
+    const now = new Date();
+    window.selectedYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    const monthNamesAZ = [
+        "Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun",
+        "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"
+    ];
+
+    function getMonthLabel(ym) {
+        const [y, m] = ym.split('-');
+        return `${monthNamesAZ[parseInt(m, 10) - 1]} ${y}`;
+    }
+
+    window.changeMonth = function(delta) {
+        const [y, m] = window.selectedYearMonth.split('-').map(Number);
+        const dateObj = new Date(y, m - 1 + delta, 1);
+        window.selectedYearMonth = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+        
+        // Input sahəsini də həmin ayın başlanğıcına uyğunlaşdır
+        dateInput.value = `${window.selectedYearMonth}-01`;
+        loadCurrentMonthBudgetToUI();
+        renderAll();
+    };
+
+    function loadCurrentMonthBudgetToUI() {
+        const bInput = document.getElementById('main-budget-input');
+        bInput.value = (budgetsByMonth[window.selectedYearMonth] !== undefined) ? budgetsByMonth[window.selectedYearMonth] : '';
+    }
 
     const authOverlay = document.getElementById('auth-overlay');
     const userProfile = document.getElementById('user-profile');
@@ -343,19 +390,20 @@
             authOverlay.style.display = 'flex';
             userProfile.style.display = 'none';
             expenses = [];
-            budget = 0;
+            budgetsByMonth = {};
             renderAll();
         }
     });
 
     function initAppListeners() {
-        onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
+        // Yeni struktura görə aylıq büdcələr 'budgets' kolleksiyasında (doc id: YYYY-MM) saxlanılır
+        onSnapshot(doc(db, "settings", "budgetsMap"), (docSnap) => {
             if (docSnap.exists()) {
-                budget = parseFloat(docSnap.data().amount) || 0;
+                budgetsByMonth = docSnap.data() || {};
             } else {
-                budget = 0;
+                budgetsByMonth = {};
             }
-            budgetInput.value = budget ? budget : '';
+            loadCurrentMonthBudgetToUI();
             renderAll();
         }, (err) => {
             console.error("Budget xətası:", err);
@@ -375,10 +423,23 @@
 
     budgetInput.addEventListener('change', async (e) => {
         const val = parseFloat(e.target.value.replace(',', '.')) || 0;
+        budgetsByMonth[window.selectedYearMonth] = val;
         try {
-            await setDoc(doc(db, "settings", "budget"), { amount: val });
+            await setDoc(doc(db, "settings", "budgetsMap"), budgetsByMonth, { merge: true });
         } catch (err) {
             alert("Büdcə saxlanılmadı: " + err.message);
+        }
+        renderAll();
+    });
+
+    // Tarix dəyişəndə də həmin ayın seçiminə uyğunlaşma
+    dateInput.addEventListener('change', (e) => {
+        const d = e.target.value;
+        if (d && d.length >= 7) {
+            const ym = d.substring(0, 7);
+            window.selectedYearMonth = ym;
+            loadCurrentMonthBudgetToUI();
+            renderAll();
         }
     });
 
@@ -398,8 +459,12 @@
         submitBtn.disabled = true;
         submitBtn.innerText = "Saxlanılır...";
 
+        const selectedDate = dateInput.value;
+        const yearMonthKey = selectedDate ? selectedDate.substring(0, 7) : window.selectedYearMonth;
+
         const expData = {
-            date: dateInput.value,
+            date: selectedDate,
+            monthKey: yearMonthKey,
             person: document.getElementById('exp-person').value,
             amount: amountVal,
             category: document.getElementById('exp-category').value,
@@ -440,7 +505,7 @@
         }
 
         document.getElementById('cancel-edit-btn').style.display = 'none';
-        dateInput.value = new Date().toISOString().split('T')[0];
+        dateInput.value = `${window.selectedYearMonth}-01`;
     };
 
     window.editExpense = function(id) {
@@ -448,7 +513,7 @@
         if (!exp) return;
 
         document.getElementById('edit-doc-id').value = exp.id;
-        dateInput.value = exp.date || new Date().toISOString().split('T')[0];
+        dateInput.value = exp.date || `${window.selectedYearMonth}-01`;
         document.getElementById('exp-person').value = exp.person;
         document.getElementById('exp-amount').value = exp.amount;
         document.getElementById('exp-category').value = exp.category;
@@ -460,7 +525,7 @@
         btn.innerText = 'Yenilə';
         btn.disabled = false;
         document.getElementById('cancel-edit-btn').style.display = 'block';
-        switchTab('add', document.querySelectorAll('.nav-item')[1]);
+        switchTab('add', document.querySelectorAll('.nav-item'));
     };
 
     window.deleteExpense = async function(id) {
@@ -475,7 +540,7 @@
 
     document.getElementById('btn-export').addEventListener('click', () => {
         const backupData = {
-            budget: budget,
+            budgetsByMonth: budgetsByMonth,
             expenses: expenses,
             exportDate: new Date().toISOString()
         };
@@ -500,15 +565,28 @@
         renderAll();
     };
 
+    function getMonthExpenses() {
+        return expenses.filter(x => {
+            const ym = x.monthKey || (x.date ? x.date.substring(0, 7) : '');
+            return ym === window.selectedYearMonth;
+        });
+    }
+
     function renderDashboard() {
-        const total = expenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-        const currentBalance = budget - total;
+        const monthLabel = getMonthLabel(window.selectedYearMonth);
+        document.getElementById('dash-month-title').innerText = monthLabel;
+        document.querySelectorAll('.dash-month-label').forEach(el => el.innerText = monthLabel);
+
+        const currentMonthExpenses = getMonthExpenses();
+        const total = currentMonthExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+        const monthBudget = parseFloat(budgetsByMonth[window.selectedYearMonth]) || 0;
+        const currentBalance = monthBudget - total;
 
         document.getElementById('dash-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
         document.getElementById('dash-total-expense').innerText = total.toFixed(2) + ' ₼';
-        document.getElementById('dash-total-budget').innerText = budget.toFixed(2) + ' ₼';
+        document.getElementById('dash-total-budget').innerText = monthBudget.toFixed(2) + ' ₼';
 
-        const recent = expenses.slice(0, 5);
+        const recent = currentMonthExpenses.slice(0, 5);
         let rHTML = '';
         recent.forEach(x => {
             const amt = (parseFloat(x.amount) || 0).toFixed(2);
@@ -525,19 +603,24 @@
                 </div>
             </div>`;
         });
-        document.getElementById('dash-recent-list').innerHTML = rHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki xərc daxil edilməyib.</p>';
+        document.getElementById('dash-recent-list').innerHTML = rHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Bu ay üçün xərc daxil edilməyib.</p>';
     }
 
     function renderAnalytics() {
-        const total = expenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-        const currentBalance = budget - total;
+        const monthLabel = getMonthLabel(window.selectedYearMonth);
+        document.getElementById('analytics-month-title').innerText = monthLabel;
+
+        const currentMonthExpenses = getMonthExpenses();
+        const total = currentMonthExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+        const monthBudget = parseFloat(budgetsByMonth[window.selectedYearMonth]) || 0;
+        const currentBalance = monthBudget - total;
 
         document.getElementById('kpi-total').innerText = total.toFixed(2) + ' ₼';
         document.getElementById('kpi-balance').innerText = currentBalance.toFixed(2) + ' ₼';
         document.getElementById('main-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
 
         const pSummary = {};
-        expenses.forEach(x => {
+        currentMonthExpenses.forEach(x => {
             if (!pSummary[x.person]) {
                 pSummary[x.person] = { total: 0, categories: {} };
             }
@@ -571,7 +654,7 @@
         document.getElementById('person-summary').innerHTML = pHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
 
         const cSummary = {};
-        expenses.forEach(x => {
+        currentMonthExpenses.forEach(x => {
             if (!cSummary[x.category]) {
                 cSummary[x.category] = { total: 0, persons: {} };
             }
@@ -657,6 +740,7 @@
     }
 
     function renderAll() {
+        loadCurrentMonthBudgetToUI();
         renderDashboard();
         renderAnalytics();
         renderHistory();
@@ -664,3 +748,5 @@
 </script>
 </body>
 </html>
+
+```
