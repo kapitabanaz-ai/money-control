@@ -1,8 +1,5 @@
-Analitika bölməsində şəxs blokuna kliklədikdə həmin şəxsin seçilmiş ay üzrə **tarixlər üzrə detallı xərc siyahısını** (kateqoriya, qeyd və məbləğlə) açan/bağlayan (`accordion` tipli) funksionallıq əlavə edildi.
+HTML
 
-Tam yenilənmiş kod:
-
-```html
 <!DOCTYPE html>
 <html lang="az">
 <head>
@@ -238,13 +235,18 @@ Tam yenilənmiş kod:
     </div>
     <!-- TAB 3: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
     <div id="tab-history" class="tab-content">
+        <div class="month-selector-bar">
+            <button onclick="changeMonth(-1)">◀</button>
+            <span id="history-month-title">—</span>
+            <button onclick="changeMonth(1)">▶</button>
+        </div>
         <div class="card">
             <h3>💾 Backup / Yedəkləmə</h3>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin.</p>
             <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
         </div>
         <div class="card">
-            <h3>📜 Əməliyyat Tarixçəsi (Gündəlik)</h3>
+            <h3>📜 Əməliyyat Tarixçəsi (<span id="history-month-label">Cari ay</span>)</h3>
             <div id="history-list"></div>
         </div>
     </div>
@@ -303,7 +305,7 @@ Tam yenilənmiş kod:
 
     let currentUser = null;
     let expenses = [];
-    let budgetsByMonth = {}; // YYYY-MM formatında büdcələr
+    let budgetsByMonth = {};
     const expandedPersons = new Set();
     
     // Cari seçilmiş ay (YYYY-MM)
@@ -316,7 +318,8 @@ Tam yenilənmiş kod:
     ];
 
     function getMonthLabel(ym) {
-        const [y, m] = ym.split('-');
+        const [y, m] = (ym || '').split('-');
+        if (!y || !m) return 'Cari ay';
         return `${monthNamesAZ[parseInt(m, 10) - 1]} ${y}`;
     }
 
@@ -517,7 +520,6 @@ Tam yenilənmiş kod:
 
         document.getElementById('cancel-edit-btn').style.display = 'none';
         
-        // Həmişə cari günə qaytarır və müvafiq aya uyğunlaşdırır
         const todayStr = getTodayString();
         dateInput.value = todayStr;
         window.selectedYearMonth = todayStr.substring(0, 7);
@@ -669,7 +671,6 @@ Tam yenilənmiş kod:
                 </div>`;
             }
 
-            // Tarixlər üzrə detallı hesabat generasiyası
             let dateBreakdownHTML = '';
             if (isExpanded) {
                 const personExpenses = currentMonthExpenses.filter(x => x.person === p);
@@ -749,8 +750,19 @@ Tam yenilənmiş kod:
     }
 
     function renderHistory() {
+        const monthLabel = getMonthLabel(window.selectedYearMonth);
+        const historyTitleEl = document.getElementById('history-month-title');
+        const historyLabelEl = document.getElementById('history-month-label');
+        if (historyTitleEl) historyTitleEl.innerText = monthLabel;
+        if (historyLabelEl) historyLabelEl.innerText = monthLabel;
+
+        const currentMonthExpenses = expenses.filter(x => {
+            const ym = x.monthKey || (x.date ? x.date.substring(0, 7) : '');
+            return ym === window.selectedYearMonth;
+        });
+
         const grouped = {};
-        expenses.forEach(x => {
+        currentMonthExpenses.forEach(x => {
             const d = x.date || 'Digər';
             if (!grouped[d]) grouped[d] = [];
             grouped[d].push(x);
@@ -796,7 +808,7 @@ Tam yenilənmiş kod:
             </div>`;
         });
 
-        document.getElementById('history-list').innerHTML = hHTML_str || '<p style="color:var(--text-muted); font-size:0.85rem;">Hələ ki tarixçə yoxdur.</p>';
+        document.getElementById('history-list').innerHTML = hHTML_str || `<p style="color:var(--text-muted); font-size:0.85rem;">${monthLabel} üzrə tarixçə yoxdur.</p>`;
     }
 
     function renderAll() {
@@ -808,5 +820,3 @@ Tam yenilənmiş kod:
 </script>
 </body>
 </html>
-
-```
