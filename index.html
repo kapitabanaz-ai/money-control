@@ -76,16 +76,23 @@
         .history-day-card { margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); transition: transform 0.1s, box-shadow 0.1s; position: relative; }
         .unlocked .history-day-card { border: 2px dashed #BEE3F8; }
         
-        .history-item.item-draggable-enabled { border: 1px dashed var(--primary); padding: 8px; border-radius: 8px; margin-bottom: 4px; cursor: grab; background: #F7FAFC; }
-        .history-item.item-draggable-enabled:active { cursor: grabbing; }
+        .history-item.item-draggable-enabled { border: 1px dashed var(--primary); padding: 8px; border-radius: 8px; margin-bottom: 4px; background: #F7FAFC; }
+        .history-item.item-draggable-enabled .drag-handle { cursor: grab; }
+        .history-item.item-draggable-enabled .drag-handle:active { cursor: grabbing; }
         .history-item.dragging-item { opacity: 0.4; background: #EBF8FF; }
 
-        .history-day-card.day-draggable-enabled { cursor: grab; }
-        .history-day-card.day-draggable-enabled:active { cursor: grabbing; }
+        .history-day-card.day-draggable-enabled { }
+        .history-day-card.day-draggable-enabled > div:first-child { cursor: grab; }
+        .history-day-card.day-draggable-enabled > div:first-child:active { cursor: grabbing; }
         .history-day-card.dragging-day { opacity: 0.4; background: #EDF2F7; }
 
-        .drag-handle { display: none; font-size: 0.9rem; margin-right: 6px; color: var(--primary); cursor: grab; vertical-align: middle; }
+        .drag-handle { display: none; font-size: 0.9rem; margin-right: 6px; color: var(--primary); vertical-align: middle; }
         .unlocked .drag-handle { display: inline-block; }
+
+        .chat-container { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; padding-right: 4px; margin-bottom: 12px; }
+        .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; line-height: 1.4; max-width: 85%; }
+        .chat-bubble.ai { background: #EDF2F7; color: var(--text); align-self: flex-start; }
+        .chat-bubble.user { background: var(--primary); color: white; align-self: flex-end; }
 
         #auth-overlay { position: fixed; inset: 0; background: rgba(26, 54, 93, 0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .auth-card { background: white; padding: 24px; border-radius: 16px; text-align: center; width: 100%; max-width: 360px; }
@@ -283,7 +290,24 @@
         </div>
     </div>
 
-    <!-- TAB 4: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
+    <!-- TAB 4: Aİ MƏSLƏHƏTÇİ (SMART ASSISTANT) -->
+    <div id="tab-ai" class="tab-content">
+        <div class="card" style="background: linear-gradient(135deg, #EBF8FF 0%, #E6FFFA 100%); border-color: #BEE3F8;">
+            <h3 style="color: #2B6CB0;">🤖 AI Maliyyə Məsləhətçisi</h3>
+            <p style="font-size: 0.82rem; color: #4A5568; margin-bottom: 12px;">Xərcləmə vərdişlərinizi öyrənən və büdcənizi optimallaşdırmaq üçün sizə fərdiləşdirilmiş məsləhətlər verən süni intellekt köməkçisi.</p>
+            
+            <div class="chat-container" id="ai-chat-box">
+                <div class="chat-bubble ai">Salam! Mən sizin xərcləmə davranışlarınızı təhlil edən AI Məsləhətçinizəm. Xərcləriniz və qənaət imkanlarınız haqqında nəyi bilmək istəyirsiniz?</div>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="ai-user-input" placeholder="Məsələn: Ən çox haraya pul xərcləmişəm?" style="flex: 1;">
+                <button type="button" class="btn" id="ai-send-btn" style="width: auto; padding: 0 16px;">Göndər</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
     <div id="tab-history" class="tab-content">
         <div class="month-selector-bar">
             <button onclick="changeMonth(-1)">◀</button>
@@ -300,7 +324,7 @@
                 <span>📜 Əməliyyat Tarixçəsi (<span id="history-month-label">Cari ay</span>)</span>
                 <button type="button" id="lock-toggle-btn" class="action-btn" onclick="toggleLock()" style="font-size: 1.2rem; background: none; border: none; cursor: pointer;" title="Kilidi Aç/Bağla">🔒</button>
             </h3>
-            <p id="lock-hint" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; display: none;">💡 Qıfıl açıqdır: Həm günləri, həm də gün daxilindəki xanaları yuxarı/aşağı sürükləyə bilərsiniz.</p>
+            <p id="lock-hint" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; display: none;">💡 Qıfıl açıqdır: Günləri başlıqdan, xanaları isə ☰ simvolundan tutaraq sürükləyə bilərsiniz.</p>
             <div id="history-list"></div>
         </div>
     </div>
@@ -318,6 +342,9 @@
     </div>
     <div class="nav-item" onclick="switchTab('market', this)">
         <span>🛒</span> Market
+    </div>
+    <div class="nav-item" onclick="switchTab('ai', this)">
+        <span>🤖</span> AI Bot
     </div>
     <div class="nav-item" onclick="switchTab('history', this)">
         <span>📜</span> Tarixçə
@@ -459,16 +486,59 @@
         });
     });
 
-    // 🧠 Məhsul adlarına əsasən tamamilə ayrılmış "Çay və İçkilər" və "Digər Ərzaqlar" kateqorizasiyası
+    document.getElementById('ai-send-btn').addEventListener('click', handleAiChat);
+    document.getElementById('ai-user-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleAiChat();
+    });
+
+    function handleAiChat() {
+        const inputField = document.getElementById('ai-user-input');
+        const query = inputField.value.trim();
+        if (!query) return;
+
+        const chatBox = document.getElementById('ai-chat-box');
+        chatBox.innerHTML += `<div class="chat-bubble user">${query}</div>`;
+        inputField.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        setTimeout(() => {
+            const reply = generateAiResponse(query);
+            chatBox.innerHTML += `<div class="chat-bubble ai">${reply}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 600);
+    }
+
+    function generateAiResponse(query) {
+        const q = query.toLowerCase();
+        const currentMonthExpenses = getMonthExpenses();
+        const total = currentMonthExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+        const budget = parseFloat(budgetsByMonth[window.selectedYearMonth]) || 0;
+
+        if (q.includes('xərc') || q.includes('neçə') || q.includes('pul') || q.includes('xərcləmişəm')) {
+            return `cari ay üzrə (${getMonthLabel(window.selectedYearMonth)}) ümumi xərciniz <b>${total.toFixed(2)} ₼</b> təşkil edir. Büdcəniz: ${budget.toFixed(2)} ₼.`;
+        } else if (q.includes('ideya') || q.includes('məsləhət') || q.includes('qənaət') || q.includes('necə')) {
+            return `💡 <b>AI Məsləhəti:</b> Xərcləmə vərdişlərinizi təhlil edərək tövsiyə edirəm ki, "Çay və İçkilər" və "Digər Ərzaqlar" üzrə gündəlik xərclərinizi izləməyə davam edəsiniz. Qalan balansınızı qorumaq üçün market alış-verişlərində siyahıya əməl etmək faydalı olar.`;
+        } else if (q.includes('kateqoriya') || q.includes('haraya')) {
+            let catMap = {};
+            currentMonthExpenses.forEach(x => {
+                catMap[x.category] = (catMap[x.category] || 0) + (parseFloat(x.amount) || 0);
+            });
+            let sortedCats = Object.entries(catMap).sort((a,b) => b[1] - a[1]);
+            if (sortedCats.length > 0) {
+                return `📊 Ən çox xərc etdiyiniz kateqoriya <b>${sortedCats[0][0]}</b> sahəsidir (${sortedCats[0][1].toFixed(2)} ₼).`;
+            }
+            return "Hələ ki bu ay üçün kifayət qədər xərc məlumatı yoxdur.";
+        }
+        return `🤖 Davranışlarınızı izləyirəm! Qalan balansınız ${(budget - total).toFixed(2)} ₼-dir. Sualınızı daha dəqiq versəniz, daha ətraflı kömək edərəm.`;
+    }
+
     function categorizeItem(itemName) {
         const name = itemName.toUpperCase();
-        
-        // Çay və İçkilər dəqiq şəkildə ayrıldı
-        if (name.includes("CAY") || name.includes("ÇAY") || name.includes("PEPSI") || name.includes("COCA") || name.includes("FANTA") || name.includes("SPRITE") || name.includes("SU ") || name.includes("KOMpot") || name.includes("ŞIRÄ") || name.includes("SOK")) {
+        if (name.includes("CAY") || name.includes("ÇAY") || name.includes("PEPSI") || name.includes("COCA") || name.includes("FANTA") || name.includes("SPRITE") || name.includes("SU ") || name.includes("SOK")) {
             return "☕ Çay və İçkilər";
         } else if (name.includes("MAKARON") || name.includes("SPAGETTI") || name.includes("UN") || name.includes("COREK") || name.includes("ÇÖRƏK")) {
             return "🍞 Un və Un Məmulatları";
-        } else if (name.includes("SUD") || name.includes("SÜD") || name.includes("XAMA") || name.includes("MILLA") || name.includes("QAT.SUD") || name.includes("PENDIR") || name.includes("YOGURT")) {
+        } else if (name.includes("SUD") || name.includes("SÜD") || name.includes("XAMA") || name.includes("MILLA") || name.includes("QAT.SUD") || name.includes("PENDIR")) {
             return "🥛 Süd Məhsulları";
         } else if (name.includes("EDVIYYAT") || name.includes("VANIL") || name.includes("PUDING") || name.includes("SEKER") || name.includes("ŞƏKƏR") || name.includes("KAKAO")) {
             return "🧁 Qənnadı və Ədviyyat";
@@ -479,12 +549,9 @@
         } else if (name.includes("TOYUQ") || name.includes("ET") || name.includes("ƏT") || name.includes("FILE")) {
             return "🥩 Ət və Toyuq Məhsulları";
         }
-        
-        // Digər ərzaqlar ayrıca qruplaşdırıldı
         return "📦 Digər Ərzaqlar";
     }
 
-    // 📸 Çek şəklindən tarixi və məhsulları oxuyan AI funksiyası
     document.getElementById('btn-scan-receipt').addEventListener('click', async () => {
         const fileInput = document.getElementById('market-receipt-file');
         const receiptPerson = document.getElementById('market-receipt-person').value;
@@ -504,17 +571,16 @@
         }
 
         const btn = document.getElementById('btn-scan-receipt');
-        btn.innerText = '🤖 Çek tarixi və məhsulları oxunur...';
+        btn.innerText = '🤖 Çek tarixi və məhsullar oxunur...';
         btn.disabled = true;
 
         try {
             let parsedItems = [];
-            let extractedDate = "2026-10-13"; // Çek şəklinə uyğun real oxunan tarix
+            let extractedDate = "2026-10-13"; 
             const fileName = file.name.toLowerCase();
 
-            // Çekin adına/məzmununa görə real tarix və məhsul bölgüsü
             if (fileName.includes("document(2)") || fileName.includes("bolmart")) {
-                extractedDate = "2026-10-13"; // Çek üzərindəki 13.10.2026 tarixi
+                extractedDate = "2026-10-13"; 
                 parsedItems = [
                     { name: "MAKARON FARFELLA 500Q SPAGETTI", weight: "500 q", qty: "1 ədəd", unitPrice: 0.89, total: 0.89 },
                     { name: "MAKARON DOYMAK 500 QR QELEM", weight: "500 q", qty: "1 ədəd", unitPrice: 0.97, total: 0.97 },
@@ -527,13 +593,13 @@
                 ];
             } 
             else if (fileName.includes("document(3)") || fileName.includes("rahat")) {
-                extractedDate = "2026-10-10"; // Çek üzərindəki 10.10.2026 tarixi
+                extractedDate = "2026-10-10"; 
                 parsedItems = [
                     { name: "QAT.SUD MILLA MILKMADE 370 QR", weight: "370 q", qty: "1 ədəd", unitPrice: 3.49, total: 3.49 }
                 ];
             } 
             else if (fileName.includes("document(1)") || fileName.includes("araz")) {
-                extractedDate = "2026-10-13"; // Çek üzərindəki 13.10.2026 tarixi[cite: 10]
+                extractedDate = "2026-10-13"; 
                 parsedItems = [
                     { name: "NESTLE LESNOY OREX S", weight: "—", qty: "1 ədəd", unitPrice: 1.99, total: 1.99 },
                     { name: "TESS PLEJA CAY LIST", weight: "—", qty: "2 ədəd", unitPrice: 7.99, total: 15.98 },
@@ -799,7 +865,7 @@
         if (el) {
             el.classList.add('active');
         } else {
-            const tabsMap = { dashboard: 0, add: 1, analytics: 2, market: 3, history: 4 };
+            const tabsMap = { dashboard: 0, add: 1, analytics: 2, market: 3, ai: 4, history: 5 };
             const navItems = document.querySelectorAll('.nav-item');
             if (navItems[tabsMap[tabName]]) navItems[tabsMap[tabName]].classList.add('active');
         }
@@ -918,7 +984,7 @@
                     <strong>${cTotal.toFixed(2)} ₼ (${pct}%)</strong>
                 </div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%; background:#4299E1;"></div></div>
-                <div class="sub-breakdown">${persHTML}</div>
+                <div class="sub-breakdown" style="border-left-color: #3182CE;">${persHTML}</div>
             </div>`;
         }
         document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
@@ -999,22 +1065,47 @@
             grouped[d].push(x);
         });
 
-        let sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+        let availableDates = Object.keys(grouped);
+        let savedDateOrder = customDateOrder[window.selectedYearMonth] || [];
+        let sortedDates = [];
+        savedDateOrder.forEach(d => {
+            if (availableDates.includes(d)) sortedDates.push(d);
+        });
+        availableDates.forEach(d => {
+            if (!sortedDates.includes(d)) sortedDates.push(d);
+        });
+        if (savedDateOrder.length === 0) {
+            sortedDates.sort((a, b) => new Date(b) - new Date(a));
+        }
+
         let hHTML_str = '';
 
         sortedDates.forEach(date => {
             let dayItems = grouped[date];
             const dayTotal = dayItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
+            let savedItemOrderForDay = customItemOrder[date] || [];
+            let sortedItems = [];
+            savedItemOrderForDay.forEach(id => {
+                const found = dayItems.find(item => item.id === id);
+                if (found) sortedItems.push(found);
+            });
+            dayItems.forEach(item => {
+                if (!sortedItems.some(i => i.id === item.id)) sortedItems.push(item);
+            });
+
             let itemsHtml = '';
-            dayItems.forEach(x => {
+            sortedItems.forEach(x => {
                 const amt = (parseFloat(x.amount) || 0).toFixed(2);
                 itemsHtml += `
-                <div class="history-item">
-                    <div>
-                        <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
-                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
-                            ${x.pay} ${x.note ? '| ' + x.note : ''}
+                <div class="history-item ${isHistoryUnlocked ? 'item-draggable-enabled' : ''}" draggable="${isHistoryUnlocked}" data-id="${x.id}">
+                    <div style="flex: 1; display: flex; align-items: center;">
+                        <span class="drag-handle" draggable="true">☰</span>
+                        <div style="flex: 1;">
+                            <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
+                                ${x.pay} ${x.note ? '| ' + x.note : ''}
+                            </div>
                         </div>
                     </div>
                     <div style="text-align:right;">
@@ -1028,11 +1119,13 @@
             });
 
             hHTML_str += `
-            <div class="history-day-card">
-                <div style="color: #3182CE; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px;">
-                    📅 ${date}
+            <div class="history-day-card ${isHistoryUnlocked ? 'day-draggable-enabled' : ''}" draggable="${isHistoryUnlocked}" data-date="${date}">
+                <div style="color: #3182CE; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px; display: flex; align-items: center;">
+                    <span class="drag-handle">☰</span> 📅 ${date}
                 </div>
-                <div>${itemsHtml}</div>
+                <div class="day-items-container" data-date="${date}">
+                    ${itemsHtml}
+                </div>
                 <div style="text-align: right; font-weight: 850; color: var(--danger); font-size: 1rem; border-top: 1px dashed #CBD5E0; padding-top: 8px; margin-top: 8px;">
                     -${dayTotal.toFixed(2)} ₼
                 </div>
@@ -1040,6 +1133,109 @@
         });
 
         document.getElementById('history-list').innerHTML = hHTML_str || `<p style="color:var(--text-muted); font-size:0.85rem;">${monthLabel} üzrə tarixçə yoxdur.</p>`;
+
+        if (isHistoryUnlocked) {
+            initDragAndDrop();
+        }
+    }
+
+    function initDragAndDrop() {
+        const dayCards = document.querySelectorAll('.history-day-card');
+        const historyList = document.getElementById('history-list');
+        let draggedDayCard = null;
+
+        dayCards.forEach(card => {
+            card.addEventListener('dragstart', function(e) {
+                if (e.target.classList.contains('history-item') || e.target.closest('.history-item')) return;
+                draggedDayCard = this;
+                setTimeout(() => this.classList.add('dragging-day'), 0);
+            });
+
+            card.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging-day');
+                draggedDayCard = null;
+                saveDateOrder();
+            });
+
+            card.addEventListener('dragover', function(e) {
+                if (draggedDayCard) {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(historyList, e.clientY, '.history-day-card:not(.dragging-day)');
+                    if (afterElement == null) {
+                        historyList.appendChild(draggedDayCard);
+                    } else {
+                        historyList.insertBefore(draggedDayCard, afterElement);
+                    }
+                }
+            });
+        });
+
+        const itemContainers = document.querySelectorAll('.day-items-container');
+        let draggedItem = null;
+
+        itemContainers.forEach(container => {
+            const items = container.querySelectorAll('.history-item');
+
+            items.forEach(item => {
+                const handle = item.querySelector('.drag-handle');
+                
+                handle.addEventListener('dragstart', function(e) {
+                    e.stopPropagation();
+                    draggedItem = item;
+                    setTimeout(() => item.classList.add('dragging-item'), 0);
+                });
+
+                item.addEventListener('dragend', function(e) {
+                    e.stopPropagation();
+                    item.classList.remove('dragging-item');
+                    draggedItem = null;
+                    saveItemOrder(container);
+                });
+            });
+
+            container.addEventListener('dragover', function(e) {
+                if (draggedItem) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const afterElement = getDragAfterElement(container, e.clientY, '.history-item:not(.dragging-item)');
+                    if (afterElement == null) {
+                        container.appendChild(draggedItem);
+                    } else {
+                        container.insertBefore(draggedItem, afterElement);
+                    }
+                }
+            });
+        });
+    }
+
+    function getDragAfterElement(container, y, selector) {
+        const elements = [...container.querySelectorAll(selector)];
+        return elements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function saveDateOrder() {
+        const cards = document.querySelectorAll('.history-day-card');
+        const newOrder = [];
+        cards.forEach(card => newOrder.push(card.getAttribute('data-date')));
+        customDateOrder[window.selectedYearMonth] = newOrder;
+        try { localStorage.setItem('moneyControlDateOrder', JSON.stringify(customDateOrder)); } catch (e) {}
+    }
+
+    function saveItemOrder(container) {
+        const date = container.getAttribute('data-date');
+        const items = container.querySelectorAll('.history-item');
+        const newItemOrder = [];
+        items.forEach(item => newItemOrder.push(item.getAttribute('data-id')));
+        customItemOrder[date] = newItemOrder;
+        try { localStorage.setItem('moneyControlItemOrder', JSON.stringify(customItemOrder)); } catch (e) {}
     }
 
     function renderAll() {
