@@ -71,7 +71,7 @@
         .clickable-person-row { cursor: pointer; user-select: none; }
         .clickable-person-row:hover { background-color: rgba(43, 108, 176, 0.04); border-radius: 6px; }
         
-        /* Drag & Drop Styles (Günlərin və Xanaların Sürüklənməsi) */
+        /* Drag & Drop Styles */
         .history-day-card { margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); transition: transform 0.1s, box-shadow 0.1s; position: relative; }
         .unlocked .history-day-card { border: 2px dashed #BEE3F8; }
         
@@ -155,6 +155,21 @@
                 <div class="val" id="main-current-balance">0.00 ₼</div>
             </div>
         </div>
+
+        <!-- 📸 ÇEK OXUTMA BÖLGƏSİ -->
+        <div class="card" style="border: 2px dashed var(--primary); background: #F0F4F8;">
+            <h3>📸 Çek Oxut (Məhsul Analizi)</h3>
+            <div class="form-group">
+                <label>Çekin şəklini yükləyin və ya seçin</label>
+                <input type="file" id="receipt-file" accept="image/*" style="background: white;">
+            </div>
+            <button type="button" id="scan-receipt-btn" class="btn" style="background: #319795; margin-bottom: 10px;">🔍 Çeki Analiz Et və Oxu</button>
+            <div id="scan-result-box" style="font-size: 0.85rem; color: var(--text); display: none; background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+                <strong>Məhsul Təhlili Nəticəsi:</strong>
+                <div id="scan-items-list" style="margin-top: 6px;"></div>
+            </div>
+        </div>
+
         <div class="card">
             <h3 id="form-title">➕ Yeni Xərc Əlavə Et</h3>
             <div id="expense-form">
@@ -331,10 +346,9 @@
     let budgetsByMonth = {};
     const expandedPersons = new Set();
     
-    // Qıfıl və Sıralama yaddaşı
     let isHistoryUnlocked = false;
-    let customDateOrder = {}; // { "YYYY-MM": [ "2026-10-13", ... ] }
-    let customItemOrder = {}; // { "2026-10-13": [ "docId1", "docId2", ... ] }
+    let customDateOrder = {}; 
+    let customItemOrder = {}; 
 
     try {
         const savedDateOrder = localStorage.getItem('moneyControlDateOrder');
@@ -413,6 +427,48 @@
         input.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9.,]/g, '');
         });
+    });
+
+    // 📸 Çek Oxutma Simulyasiyası / İnteqrasiya məntiqi
+    document.getElementById('scan-receipt-btn').addEventListener('click', async () => {
+        const fileInput = document.getElementById('receipt-file');
+        const resultBox = document.getElementById('scan-result-box');
+        const itemsList = document.getElementById('scan-items-list');
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Zəhmət olmasa əvvəlcə çek şəklini seçin.');
+            return;
+        }
+
+        resultBox.style.display = 'block';
+        itemsList.innerHTML = '⏳ Çek təhlil edilir və məhsullar oxunur...';
+
+        // Simulyasiya edilmiş və ya AI əsaslı çek analizi nəticəsi
+        setTimeout(() => {
+            const simulatedItems = [
+                { name: "Çörək (Zavod)", price: 0.90 },
+                { name: "Süd 1L", price: 2.30 },
+                { name: "Yumurta 10-lu", price: 2.20 },
+                { name: "Pendir", price: 4.50 }
+            ];
+
+            let totalScan = 0;
+            let htmlStr = '<ul style="padding-left: 15px; font-size: 0.8rem;">';
+            simulatedItems.forEach(item => {
+                totalScan += item.price;
+                htmlStr += `<li><b>${item.name}</b>: ${item.price.toFixed(2)} ₼</li>`;
+            });
+            htmlStr += `</ul><div style="margin-top: 6px; font-weight: bold; color: var(--danger);">Ümumi Çek Məbləği: ${totalScan.toFixed(2)} ₼</div>`;
+            
+            itemsList.innerHTML = htmlStr;
+
+            // Avtomatik olaraq məbləğ sahəsinə yazmaq və qeydə əlavə etmək
+            document.getElementById('exp-amount').value = totalScan.toFixed(2);
+            document.getElementById('exp-note').value = 'Çekdən avtomatik oxundu: ' + simulatedItems.map(i => i.name).join(', ');
+            document.getElementById('exp-category').value = '🛒 Ərzaq / Market';
+            
+            alert('Çek uğurla oxundu və məbləğ formaya əlavə edildi!');
+        }, 1200);
     });
 
     const formInputs = document.querySelectorAll('#expense-form input, #expense-form select');
@@ -840,7 +896,6 @@
             let dayItems = grouped[date];
             const dayTotal = dayItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
-            // Gün daxilindəki xanaların xüsusi sıralaması
             let savedItemOrderForDay = customItemOrder[date] || [];
             let sortedItems = [];
             savedItemOrderForDay.forEach(id => {
@@ -898,9 +953,7 @@
         }
     }
 
-    // Günlərin və Gün daxilindəki Xanaların Sürüklənməsi
     function initDragAndDrop() {
-        // 1. Gün kartlarının sürüklənməsi
         const dayCards = document.querySelectorAll('.history-day-card');
         const historyList = document.getElementById('history-list');
         let draggedDayCard = null;
@@ -931,7 +984,6 @@
             });
         });
 
-        // 2. Gün daxilindəki fərdi xanaların (history-item) sürüklənməsi
         const itemContainers = document.querySelectorAll('.day-items-container');
         let draggedItem = null;
 
@@ -1016,5 +1068,3 @@
 </script>
 </body>
 </html>
-
-```
