@@ -477,7 +477,6 @@
         btn.disabled = true;
 
         setTimeout(async () => {
-            // Göndərdiyiniz Araz Market çekinin detallı məhsul və kateqoriya bölgüsü
             const aiDetectedItems = [
                 { name: "TESS PLEJA CAY LIST", category: "☕ Çay, Şirniyyat və Şokolad", price: 15.98 },
                 { name: "TESS FANTAZY 10X400", category: "☕ Çay, Şirniyyat və Şokolad", price: 15.98 },
@@ -493,7 +492,7 @@
                 { name: "PAKET ARAZ 35X65", category: "🛍️ Digər / Məişət", price: 0.14 }
             ];
 
-            let totalReceiptSum = 57.53; // Çekin ümumi məbləği
+            let totalReceiptSum = 57.53; 
             const ymKey = receiptDate.substring(0, 7);
 
             marketReceipts.push({
@@ -1146,7 +1145,7 @@
     function saveDateOrder() {
         const cards = document.querySelectorAll('.history-day-card');
         const newOrder = [];
-        cards.cards?.forEach?.(card => {
+        cards.forEach(card => {
             newOrder.push(card.getAttribute('data-date'));
         });
         customDateOrder[window.selectedYearMonth] = newOrder;
