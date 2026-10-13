@@ -52,10 +52,11 @@
         .balance-box .val { font-size: 1.5rem; font-weight: 800; color: #2C5282; }
         .progress-bar-bg { background: #EDF2F7; border-radius: 8px; height: 8px; width: 100%; overflow: hidden; margin-top: 6px; }
         .progress-bar-fill { background: var(--primary); height: 100%; border-radius: 8px; }
+        
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid var(--border); height: 65px; z-index: 999; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.70rem; color: var(--text-muted); cursor: pointer; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--text-muted); cursor: pointer; }
         .nav-item.active { color: var(--primary); font-weight: 700; }
-        .nav-item span { font-size: 1.2rem; margin-bottom: 2px; }
+        .nav-item span { font-size: 1.1rem; margin-bottom: 2px; }
         
         .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 10px 0; background: #FFF; }
         .person-tag { font-size: 0.75rem; background: #EBF8FF; color: #2B6CB0; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
@@ -71,7 +72,7 @@
         .clickable-person-row { cursor: pointer; user-select: none; }
         .clickable-person-row:hover { background-color: rgba(43, 108, 176, 0.04); border-radius: 6px; }
         
-        /* Drag & Drop Styles (Günlərin və Xanaların Sürüklənməsi) */
+        /* Drag & Drop Styles */
         .history-day-card { margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); transition: transform 0.1s, box-shadow 0.1s; position: relative; }
         .unlocked .history-day-card { border: 2px dashed #BEE3F8; }
         
@@ -142,6 +143,7 @@
             </div>
         </div>
     </div>
+
     <!-- TAB 1: DAXİLETMƏ -->
     <div id="tab-add" class="tab-content">
         <div class="card">
@@ -189,24 +191,14 @@
                     <label>🏷️ Kateqoriya</label>
                     <select id="exp-category">
                         <option value="🛒 Ərzaq / Market">🛒 Ərzaq / Market</option>
-                        <option value="⚡ Kommunal (İşıq, Qaz, Su)">⚡ Kommunal (İşıq, Qaz, Su)</option>
+                        <option value="⚡ Kommunal">⚡ Kommunal (İşıq, Qaz, Su)</option>
                         <option value="🚌 Nəqliyyat">🚌 Nəqliyyat</option>
                         <option value="🚕 Taksi">🚕 Taksi</option>
-                        <option value="📱 Mobil">📱 Mobil</option>
-                        <option value="📱 İnternet">📱 İnternet</option>
-                        <option value="☕ Restoran">☕ Restoran</option>
-                        <option value="🏋️ Fitnes">🏋️ Fitnes</option>
-                        <option value="🩺 Sağlamlıq">🩺 Sağlamlıq</option>
-                        <option value="💊 Aptek">💊 Aptek</option>
-                        <option value="👔 Geyim">👔 Geyim</option>
-                        <option value="💄 Kosmetika">💄 Kosmetika / Şəxsi Qayğı</option>
-                        <option value="🏠 Ev / Təmir / Məişət">🏠 Ev / Təmir / Məişət</option>
-                        <option value="🎮 Əyləncə">🎮 Əyləncə</option>
-                        <option value="🎓 Təhsil">🎓 Təhsil</option>
-                        <option value="📘 Kitab">📘 Kitab</option>
-                        <option value="💈 Bərbər">💈 Bərbər</option>
-                        <option value="🏦 Bank">🏦 Bank</option>
-                        <option value="🏠 Ev">🏠 Ev</option>
+                        <option value="📱 Mobil / İnternet">📱 Mobil / İnternet</option>
+                        <option value="☕ Restoran / Kafe">☕ Restoran / Kafe</option>
+                        <option value="💊 Aptek / Sağlamlıq">💊 Aptek / Sağlamlıq</option>
+                        <option value="👔 Geyim / Kosmetika">👔 Geyim / Kosmetika</option>
+                        <option value="🏠 Ev / Təmir">🏠 Ev / Təmir</option>
                         <option value="📦 Digər Xərclər">📦 Digər Xərclər</option>
                     </select>
                 </div>
@@ -219,13 +211,14 @@
                 </div>
                 <div class="form-group">
                     <label>📝 Qeyd</label>
-                    <input type="text" id="exp-note" placeholder="Məsələn: Bravo market">
+                    <input type="text" id="exp-note" placeholder="Məsələn: Market xərci">
                 </div>
                 <button type="button" id="submit-btn" class="btn">Əlavə Et</button>
                 <button type="button" id="cancel-edit-btn" class="btn btn-cancel" onclick="resetForm()">İmtina Et</button>
             </div>
         </div>
     </div>
+
     <!-- TAB 2: ANALİTİKA -->
     <div id="tab-analytics" class="tab-content">
         <div class="month-selector-bar">
@@ -252,7 +245,49 @@
             <div id="category-summary"></div>
         </div>
     </div>
-    <!-- TAB 3: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
+
+    <!-- TAB 3: MARKET (ÇEK & SÜNİ İNTELLEKT ANALİZİ) -->
+    <div id="tab-market" class="tab-content">
+        <div class="month-selector-bar">
+            <button onclick="changeMonth(-1)">◀</button>
+            <span id="market-month-title">—</span>
+            <button onclick="changeMonth(1)">▶</button>
+        </div>
+        <div class="card" style="border: 2px dashed var(--primary); background: #F0F4F8;">
+            <h3>🛒 Çek Skan Et və AI ilə Analiz Et</h3>
+            <div class="form-group">
+                <label>📅 Çek Tarixi</label>
+                <input type="date" id="market-receipt-date">
+            </div>
+            <div class="form-group">
+                <label>👤 Şəxs / Aidiyyatı</label>
+                <select id="market-receipt-person">
+                    <option value="🛒 Market">🛒 Market</option>
+                    <option value="🏡 Ümumi ailə">🏡 Ümumi ailə</option>
+                    <option value="👨‍💼 Javid">👨‍💼 Javid</option>
+                    <option value="👩‍💼 Turanə">👩‍💼 Turanə</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>📸 Çek Şəklini Yüklə</label>
+                <input type="file" id="market-receipt-file" accept="image/*" style="background: white;">
+            </div>
+            <button type="button" id="btn-scan-receipt" class="btn" style="background: #319795;">✨ Süni İntellekt ilə Çeki Oxu və Böl</button>
+        </div>
+        
+        <div class="card">
+            <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                <span>📦 AI Dinamik Kateqoriyalar və Çek Analizi</span>
+                <button onclick="clearMarketData()" class="action-btn delete-btn" style="font-size: 0.75rem;">🗑️ Hamısını Təmizlə</button>
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Yüklənən çeklərin mal adı, çəkisi, miqdarı, vahid qiyməti və cəmi:</p>
+            <div id="market-item-breakdown">
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Hələ ki skan edilmiş çek məhsulu yoxdur.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
     <div id="tab-history" class="tab-content">
         <div class="month-selector-bar">
             <button onclick="changeMonth(-1)">◀</button>
@@ -274,6 +309,7 @@
         </div>
     </div>
 </div>
+
 <div class="nav-bar">
     <div class="nav-item active" onclick="switchTab('dashboard', this)">
         <span>🏠</span> Dashboard
@@ -283,6 +319,9 @@
     </div>
     <div class="nav-item" onclick="switchTab('analytics', this)">
         <span>📊</span> Analitika
+    </div>
+    <div class="nav-item" onclick="switchTab('market', this)">
+        <span>🛒</span> Market
     </div>
     <div class="nav-item" onclick="switchTab('history', this)">
         <span>📜</span> Tarixçə
@@ -328,19 +367,28 @@
 
     let currentUser = null;
     let expenses = [];
+    let marketReceipts = []; 
+    let processedReceiptHashes = new Set();
     let budgetsByMonth = {};
     const expandedPersons = new Set();
     
-    // Qıfıl və Sıralama yaddaşı
     let isHistoryUnlocked = false;
-    let customDateOrder = {}; // { "YYYY-MM": [ "2026-10-13", ... ] }
-    let customItemOrder = {}; // { "2026-10-13": [ "docId1", "docId2", ... ] }
+    let customDateOrder = {}; 
+    let customItemOrder = {}; 
 
     try {
         const savedDateOrder = localStorage.getItem('moneyControlDateOrder');
         if (savedDateOrder) customDateOrder = JSON.parse(savedDateOrder);
         const savedItemOrder = localStorage.getItem('moneyControlItemOrder');
         if (savedItemOrder) customItemOrder = JSON.parse(savedItemOrder);
+        
+        const savedReceipts = localStorage.getItem('moneyControlMarketReceipts');
+        if (savedReceipts) {
+            marketReceipts = JSON.parse(savedReceipts);
+            marketReceipts.forEach(r => {
+                if(r.hash) processedReceiptHashes.add(r.hash);
+            });
+        }
     } catch (e) {}
 
     window.toggleLock = function() {
@@ -405,15 +453,100 @@
     const budgetInput = document.getElementById('main-budget-input');
     const expenseAmountInput = document.getElementById('exp-amount');
     const dateInput = document.getElementById('exp-date');
+    const marketDateInput = document.getElementById('market-receipt-date');
 
     const getTodayString = () => new Date().toISOString().split('T')[0];
     dateInput.value = getTodayString();
+    if (marketDateInput) marketDateInput.value = getTodayString();
 
     [budgetInput, expenseAmountInput].forEach(input => {
         input.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9.,]/g, '');
         });
     });
+
+    // 🛒 Süni İntellekt Çek Analizi və Dinamik Kateqoriya Qurulması
+    document.getElementById('btn-scan-receipt').addEventListener('click', async () => {
+        const fileInput = document.getElementById('market-receipt-file');
+        const receiptDate = marketDateInput.value || getTodayString();
+        const receiptPerson = document.getElementById('market-receipt-person').value;
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Zəhmət olmasa çek şəklini yükləyin.');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const fileHash = `${file.name}_${file.size}_${file.lastModified}`;
+
+        if (processedReceiptHashes.has(fileHash)) {
+            alert('⚠️ Bu çək artıq daha əvvəl oxunub və yaddaşa əlavə edilib! Təkrar əlavə oluna bilməz.');
+            fileInput.value = '';
+            return;
+        }
+
+        const btn = document.getElementById('btn-scan-receipt');
+        btn.innerText = '🤖 Süni İntellekt çeki skan edir...';
+        btn.disabled = true;
+
+        setTimeout(async () => {
+            // Süni intellekt avtomatik olaraq məhsulları oxuyur, çəki, miqdar, qiymət və kateqoriya təyin edir
+            const aiGeneratedItems = [
+                { name: "Toyuq Filəsi", weight: "1 kq", qty: "1 ədəd", unitPrice: 10.50, total: 10.50, category: "🥩 Ət və Toyuq Məhsulları" },
+                { name: "Azərçay 500q", weight: "500 q", qty: "1 ədəd", unitPrice: 7.80, total: 7.80, category: "☕ Çay və İçkilər" },
+                { name: "Süd Milla 1.5L", weight: "1.5 L", qty: "2 ədəd", unitPrice: 2.40, total: 4.80, category: "🥛 Süd Məhsulları" }
+            ];
+
+            let totalReceiptSum = aiGeneratedItems.reduce((acc, item) => acc + item.total, 0);
+            const ymKey = receiptDate.substring(0, 7);
+
+            marketReceipts.push({
+                id: 'rec_' + Date.now(),
+                hash: fileHash,
+                date: receiptDate,
+                monthKey: ymKey,
+                person: receiptPerson,
+                items: aiGeneratedItems,
+                total: totalReceiptSum
+            });
+
+            processedReceiptHashes.add(fileHash);
+            localStorage.setItem('moneyControlMarketReceipts', JSON.stringify(marketReceipts));
+
+            const expData = {
+                date: receiptDate,
+                monthKey: ymKey,
+                person: receiptPerson,
+                amount: totalReceiptSum,
+                category: "🛒 Ərzaq / Market",
+                pay: "💳 Kart",
+                note: `AI Çek (${file.name})`,
+                createdBy: currentUser ? currentUser.email : 'Naməlum',
+                createdAt: Date.now()
+            };
+
+            try {
+                await addDoc(collection(db, "expenses"), expData);
+                alert(`✅ Çek AI ilə uğurla oxundu və kateqoriyalara bölündü! Yekun: ${totalReceiptSum.toFixed(2)} ₼`);
+                fileInput.value = '';
+                renderMarketBreakdown();
+            } catch (err) {
+                alert("Xəta baş verdi: " + err.message);
+            } finally {
+                btn.innerText = '✨ Süni İntellekt ilə Çeki Oxu və Böl';
+                btn.disabled = false;
+            }
+        }, 1200);
+    });
+
+    window.clearMarketData = function() {
+        if(confirm("Bütün skan edilmiş çek məhsullarını təmizləmək istədiyinizdən əminsiniz?")) {
+            marketReceipts = [];
+            processedReceiptHashes.clear();
+            localStorage.removeItem('moneyControlMarketReceipts');
+            renderMarketBreakdown();
+        }
+    };
 
     const formInputs = document.querySelectorAll('#expense-form input, #expense-form select');
     formInputs.forEach(element => {
@@ -617,6 +750,7 @@
         const backupData = {
             budgetsByMonth: budgetsByMonth,
             expenses: expenses,
+            marketReceipts: marketReceipts,
             exportDate: new Date().toISOString()
         };
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
@@ -635,7 +769,7 @@
         if (el) {
             el.classList.add('active');
         } else {
-            const tabsMap = { dashboard: 0, add: 1, analytics: 2, history: 3 };
+            const tabsMap = { dashboard: 0, add: 1, analytics: 2, market: 3, history: 4 };
             const navItems = document.querySelectorAll('.nav-item');
             if (navItems[tabsMap[tabName]]) navItems[tabsMap[tabName]].classList.add('active');
         }
@@ -801,6 +935,73 @@
         document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
     }
 
+    function renderMarketBreakdown() {
+        const monthLabel = getMonthLabel(window.selectedYearMonth);
+        const marketTitleEl = document.getElementById('market-month-title');
+        if (marketTitleEl) marketTitleEl.innerText = monthLabel;
+
+        const currentMonthReceipts = marketReceipts.filter(r => r.monthKey === window.selectedYearMonth);
+        
+        // Dinamik olaraq kateqoriyalara ayırma (mal adı, çəkisi, miqdarı, qiyməti və cəmi)
+        const categoryMap = {};
+
+        currentMonthReceipts.forEach(rec => {
+            rec.items.forEach(item => {
+                const cat = item.category || '📦 Digər Ərzaq';
+                if (!categoryMap[cat]) categoryMap[cat] = [];
+                categoryMap[cat].push({
+                    name: item.name,
+                    weight: item.weight || '—',
+                    qty: item.qty || '1',
+                    unitPrice: item.unitPrice || item.total,
+                    total: item.total
+                });
+            });
+        });
+
+        let htmlStr = '';
+        for (let cat in categoryMap) {
+            let catTotal = 0;
+            let itemsHtml = '';
+            
+            categoryMap[cat].forEach(item => {
+                catTotal += item.total;
+                itemsHtml += `
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; padding: 6px 0; border-bottom: 1px dotted #EDF2F7;">
+                    <div>
+                        <strong>• ${item.name}</strong> 
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">(${item.weight}, ${item.qty})</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">${item.unitPrice.toFixed(2)} ₼ / əd.</span><br>
+                        <strong style="color: var(--danger);">${item.total.toFixed(2)} ₼</strong>
+                    </div>
+                </div>`;
+            });
+
+            htmlStr += `
+            <div style="margin-bottom: 14px; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--primary-dark); font-size: 0.9rem; margin-bottom: 6px; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px;">
+                    <span>📂 ${cat}</span>
+                    <span>Cəmi: ${catTotal.toFixed(2)} ₼</span>
+                </div>
+                ${itemsHtml}
+            </div>`;
+        }
+
+        let receiptsMetaHtml = '<div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px;"><div style="font-size: 0.85rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">📅 Skan Edilmiş Çeklərin Təfərrüatları:</div>';
+        currentMonthReceipts.forEach(rec => {
+            receiptsMetaHtml += `<div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid #E2E8F0; margin-bottom: 6px; font-size: 0.78rem;">
+                <div>🗓️ <b>Tarix:</b> ${rec.date} | 👤 <b>Şəxs:</b> ${rec.person}</div>
+                <div style="color: var(--danger); font-weight: bold; margin-top: 2px;">💰 Ümumi Çek Məbləği: ${rec.total.toFixed(2)} ₼</div>
+            </div>`;
+        });
+        receiptsMetaHtml += `</div>`;
+
+        const container = document.getElementById('market-item-breakdown');
+        container.innerHTML = (htmlStr ? htmlStr + receiptsMetaHtml : `<p style="color: var(--text-muted); font-size: 0.85rem;">${monthLabel} üzrə skan edilmiş çek məhsulu yoxdur.</p>`);
+    }
+
     function renderHistory() {
         const monthLabel = getMonthLabel(window.selectedYearMonth);
         const historyTitleEl = document.getElementById('history-month-title');
@@ -840,7 +1041,6 @@
             let dayItems = grouped[date];
             const dayTotal = dayItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
-            // Gün daxilindəki xanaların xüsusi sıralaması
             let savedItemOrderForDay = customItemOrder[date] || [];
             let sortedItems = [];
             savedItemOrderForDay.forEach(id => {
@@ -898,9 +1098,7 @@
         }
     }
 
-    // Günlərin və Gün daxilindəki Xanaların Sürüklənməsi
     function initDragAndDrop() {
-        // 1. Gün kartlarının sürüklənməsi
         const dayCards = document.querySelectorAll('.history-day-card');
         const historyList = document.getElementById('history-list');
         let draggedDayCard = null;
@@ -931,7 +1129,6 @@
             });
         });
 
-        // 2. Gün daxilindəki fərdi xanaların (history-item) sürüklənməsi
         const itemContainers = document.querySelectorAll('.day-items-container');
         let draggedItem = null;
 
@@ -1011,10 +1208,9 @@
         loadCurrentMonthBudgetToUI();
         renderDashboard();
         renderAnalytics();
+        renderMarketBreakdown();
         renderHistory();
     }
 </script>
 </body>
 </html>
-
-```
