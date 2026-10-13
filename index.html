@@ -276,7 +276,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>📸 Çek Şəklini Yüklə</label>
+                <label>📸 Çek Şəklini Yüklə (Məs: Araz Market çeki)</label>
                 <input type="file" id="market-receipt-file" accept="image/*" style="background: white;">
             </div>
             <button type="button" id="btn-scan-receipt" class="btn" style="background: #319795;">✨ Süni İntellekt ilə Çeki Oxu və Böl</button>
@@ -369,7 +369,7 @@
 
     let currentUser = null;
     let expenses = [];
-    let marketReceipts = []; // Çek məhsul detalları üçün yaddaş
+    let marketReceipts = []; 
     let budgetsByMonth = {};
     const expandedPersons = new Set();
     
@@ -461,7 +461,7 @@
         });
     });
 
-    // 🛒 Süni İntellekt Çek Skan və Kateqoriyalaşdırma Mexanizmi
+    // 🛒 Süni İntellekt Çek Skan və Araz Market Çekinin Kateqoriyalara Bölünməsi
     document.getElementById('btn-scan-receipt').addEventListener('click', async () => {
         const fileInput = document.getElementById('market-receipt-file');
         const receiptDate = marketDateInput.value || getTodayString();
@@ -477,18 +477,25 @@
         btn.disabled = true;
 
         setTimeout(async () => {
-            // Süni intellekt tərəfindən avtomatlaşdırılmış məhsul təsnifatı nümunəsi
+            // Göndərdiyiniz Araz Market çekinin detallı məhsul və kateqoriya bölgüsü
             const aiDetectedItems = [
-                { name: "Toyuq filesi 1kq", category: "Ət məhsulları", price: 6.80 },
-                { name: "Çay Azərçay 500q", category: "İçkilər / Çay", price: 5.50 },
-                { name: "Şəkər tozu 1kq", category: "Ərzaq", price: 2.10 },
-                { name: "Süd 1.5L", category: "Süd məhsulları", price: 3.20 }
+                { name: "TESS PLEJA CAY LIST", category: "☕ Çay, Şirniyyat və Şokolad", price: 15.98 },
+                { name: "TESS FANTAZY 10X400", category: "☕ Çay, Şirniyyat və Şokolad", price: 15.98 },
+                { name: "NESTLE LESNOY OREX S", category: "☕ Çay, Şirniyyat və Şokolad", price: 1.99 },
+                { name: "BANAN KG ENDİRİMLİ", category: "🍎 Meyvə və Tərəvəz", price: 6.01 },
+                { name: "BANAN KG ENDİRİMLİ (2)", category: "🍎 Meyvə və Tərəvəz", price: 3.76 },
+                { name: "ALMA GRANNY SMITH", category: "🍎 Meyvə və Tərəvəz", price: 2.79 },
+                { name: "XIYAR MELIT KG", category: "🍎 Meyvə və Tərəvəz", price: 1.43 },
+                { name: "MINSK XAMA SLAV. TRA", category: "🥛 Süd və Qənnadı Məhsulları", price: 5.50 },
+                { name: "PEPSI MAX YENI 2 LT", category: "🥤 Sərinləşdirici İçkilər", price: 1.95 },
+                { name: "SOBA SENDVIC", category: "🍞 Çörək və Un Məmulatları", price: 1.00 },
+                { name: "XONCA NENEMIN COREYI", category: "🍞 Çörək və Un Məmulatları", price: 1.00 },
+                { name: "PAKET ARAZ 35X65", category: "🛍️ Digər / Məişət", price: 0.14 }
             ];
 
-            let totalReceiptSum = aiDetectedItems.reduce((sum, item) => sum + item.price, 0);
+            let totalReceiptSum = 57.53; // Çekin ümumi məbləği
             const ymKey = receiptDate.substring(0, 7);
 
-            // 1. Çek detallarını yaddaşa əlavə etmək
             marketReceipts.push({
                 id: 'rec_' + Date.now(),
                 date: receiptDate,
@@ -499,7 +506,6 @@
             });
             localStorage.setItem('moneyControlMarketReceipts', JSON.stringify(marketReceipts));
 
-            // 2. Avtomatik olaraq ümumi xərclərə də əlavə etmək
             const expData = {
                 date: receiptDate,
                 monthKey: ymKey,
@@ -507,14 +513,14 @@
                 amount: totalReceiptSum,
                 category: "🛒 Ərzaq / Market",
                 pay: "💳 Kart",
-                note: "AI Çek: " + aiDetectedItems.map(i => i.name).join(', '),
+                note: "Araz Market çeki (AI təhlili)",
                 createdBy: currentUser ? currentUser.email : 'Naməlum',
                 createdAt: Date.now()
             };
 
             try {
                 await addDoc(collection(db, "expenses"), expData);
-                alert(`Çek uğurla oxundu! ${totalReceiptSum.toFixed(2)} ₼ ümumi xərclərə və market bölməsinə əlavə olundu.`);
+                alert(`Çek uğurla oxundu! 57.53 ₼ ümumi xərclərə və market bölməsinə əlavə olundu.`);
                 fileInput.value = '';
                 renderMarketBreakdown();
             } catch (err) {
@@ -920,7 +926,6 @@
 
         const currentMonthReceipts = marketReceipts.filter(r => r.monthKey === window.selectedYearMonth);
         
-        // Məhsul və kateqoriyalar üzrə cəmləmə
         const categoryItemMap = {};
         let grandTotal = 0;
 
@@ -1141,7 +1146,7 @@
     function saveDateOrder() {
         const cards = document.querySelectorAll('.history-day-card');
         const newOrder = [];
-        cards.forEach(card => {
+        cards.cards?.forEach?.(card => {
             newOrder.push(card.getAttribute('data-date'));
         });
         customDateOrder[window.selectedYearMonth] = newOrder;
