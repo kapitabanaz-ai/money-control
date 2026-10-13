@@ -1,3 +1,6 @@
+Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı sürüklənərək sırasının dəyişdirilməsi və bunun kilid (qıfıl) düyməsi vasitəsilə idarə olunması üçün tətbiq edilən yenilənmiş tam kod:
+
+```html
 <!DOCTYPE html>
 <html lang="az">
 <head>
@@ -70,6 +73,15 @@
         .clickable-person-row { cursor: pointer; user-select: none; }
         .clickable-person-row:hover { background-color: rgba(43, 108, 176, 0.04); border-radius: 6px; }
         
+        /* Drag & Drop / Reorder Styles */
+        .history-day-card { margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); transition: transform 0.1s, box-shadow 0.1s; position: relative; }
+        .history-day-card.draggable-enabled { border: 2px dashed var(--primary); cursor: grab; }
+        .history-day-card.draggable-enabled:active { cursor: grabbing; }
+        .history-day-card.dragging { opacity: 0.4; background: #EBF8FF; }
+        
+        .drag-handle { display: none; font-size: 1rem; margin-right: 6px; color: var(--primary); cursor: grab; vertical-align: middle; }
+        .unlocked .drag-handle { display: inline-block; }
+
         #auth-overlay { position: fixed; inset: 0; background: rgba(26, 54, 93, 0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .auth-card { background: white; padding: 24px; border-radius: 16px; text-align: center; width: 100%; max-width: 360px; }
     </style>
@@ -249,7 +261,11 @@
             <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
         </div>
         <div class="card">
-            <h3>📜 Əməliyyat Tarixçəsi (<span id="history-month-label">Cari ay</span>)</h3>
+            <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                <span>📜 Əməliyyat Tarixçəsi (<span id="history-month-label">Cari ay</span>)</span>
+                <button type="button" id="lock-toggle-btn" class="action-btn" onclick="toggleLock()" style="font-size: 1.2rem; background: none; border: none; cursor: pointer;" title="Kilidi Aç/Bağla">🔒</button>
+            </h3>
+            <p id="lock-hint" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; display: none;">💡 Qıfıl açıqdır: Günləri yuxarı və ya aşağı sürükləyərək sırasını dəyişə bilərsiniz.</p>
             <div id="history-list"></div>
         </div>
     </div>
@@ -310,6 +326,32 @@
     let expenses = [];
     let budgetsByMonth = {};
     const expandedPersons = new Set();
+    
+    // Tarixçə sıralaması üçün yaddaş (localStorage və ya yaddaş obyekti)
+    let isHistoryUnlocked = false;
+    let customDateOrder = {}; // { "YYYY-MM": [ "2026-10-13", "2026-10-11", ... ] }
+    try {
+        const savedOrder = localStorage.getItem('moneyControlDateOrder');
+        if (savedOrder) customDateOrder = JSON.parse(savedOrder);
+    } catch (e) {}
+
+    window.toggleLock = function() {
+        isHistoryUnlocked = !isHistoryUnlocked;
+        const btn = document.getElementById('lock-toggle-btn');
+        const hint = document.getElementById('lock-hint');
+        const list = document.getElementById('history-list');
+        
+        if (isHistoryUnlocked) {
+            btn.innerText = '🔓';
+            hint.style.display = 'block';
+            list.classList.add('unlocked');
+        } else {
+            btn.innerText = '🔒';
+            hint.style.display = 'none';
+            list.classList.remove('unlocked');
+        }
+        renderHistory();
+    };
     
     // Cari seçilmiş ay (YYYY-MM)
     const now = new Date();
@@ -726,7 +768,7 @@
             cSummary[x.category].persons[x.person] = (cSummary[x.category].persons[x.person] || 0) + (parseFloat(x.amount) || 0);
         });
 
-        let cHTML = '';
+        let cHTML = {};
         for (let c in cSummary) {
             const cTotal = cSummary[c].total;
             const pct = total > 0 ? ((cTotal / total) * 100).toFixed(1) : 0;
@@ -739,7 +781,7 @@
                 </div>`;
             }
 
-            cHTML += `
+            let cardEl = `
             <div style="margin-bottom: 14px; background: #F8FAFC; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
                 <div class="history-item" style="border:none; padding:0 0 6px 0;">
                     <strong>${c}</strong>
@@ -748,8 +790,14 @@
                 <div class="progress-bar-bg" style="margin-bottom: 6px;"><div class="progress-bar-fill" style="width: ${pct}%; background:#4299E1;"></div></div>
                 <div class="sub-breakdown" style="border-left-color: #3182CE;">${persHTML}</div>
             </div>`;
+            cHTML[c] = cardEl;
         }
-        document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
+        
+        let finalCHtml = '';
+        for(let c in cSummary) {
+            finalCHtml += cHTML[c];
+        }
+        document.getElementById('category-summary').innerHTML = finalCHtml || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
     }
 
     function renderHistory() {
@@ -771,22 +819,37 @@
             grouped[d].push(x);
         });
 
-        const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+        let availableDates = Object.keys(grouped);
+        
+        // Sıralamanı tənzimləmək
+        let savedOrderForMonth = customDateOrder[window.selectedYearMonth] || [];
+        // Yeni yaranan tarixləri də əlavə etmək üçün
+        let sortedDates = [];
+        savedOrderForMonth.forEach(d => {
+            if (availableDates.includes(d)) {
+                sortedDates.push(d);
+            }
+        });
+        availableDates.forEach(d => {
+            if (!sortedDates.includes(d)) {
+                sortedDates.push(d);
+            }
+        });
+        // Əgər heç yaddaşda yoxdursa standart azalan sıra
+        if (savedOrderForMonth.length === 0) {
+            sortedDates.sort((a, b) => new Date(b) - new Date(a));
+        }
+
         let hHTML_str = '';
 
         sortedDates.forEach(date => {
             const dayItems = grouped[date];
             const dayTotal = dayItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
-            hHTML_str += `
-            <div style="margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
-                <div style="color: #3182CE; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px;">
-                    📅 ${date}
-                </div>`;
-
+            let itemsHtml = '';
             dayItems.forEach(x => {
                 const amt = (parseFloat(x.amount) || 0).toFixed(2);
-                hHTML_str += `
+                itemsHtml += `
                 <div class="history-item">
                     <div>
                         <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
@@ -805,13 +868,79 @@
             });
 
             hHTML_str += `
+            <div class="history-day-card ${isHistoryUnlocked ? 'draggable-enabled' : ''}" draggable="${isHistoryUnlocked}" data-date="${date}">
+                <div style="color: #3182CE; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px; display: flex; align-items: center;">
+                    <span class="drag-handle">☰</span> 📅 ${date}
+                </div>
+                ${itemsHtml}
                 <div style="text-align: right; font-weight: 850; color: var(--danger); font-size: 1rem; border-top: 1px dashed #CBD5E0; padding-top: 8px; margin-top: 8px;">
                     -${dayTotal.toFixed(2)} ₼
                 </div>
             </div>`;
         });
 
-        document.getElementById('history-list').innerHTML = hHTML_str || `<p style="color:var(--text-muted); font-size:0.85rem;">${monthLabel} üzrə tarixçə yoxdur.</p>`;
+        const listContainer = document.getElementById('history-list');
+        listContainer.innerHTML = hHTML_str || `<p style="color:var(--text-muted); font-size:0.85rem;">${monthLabel} üzrə tarixçə yoxdur.</p>`;
+
+        if (isHistoryUnlocked) {
+            initDragAndDrop();
+        }
+    }
+
+    // Drag and Drop funksionallığı (Mobil və Desktop dəstəyi ilə)
+    function initDragAndDrop() {
+        const cards = document.querySelectorAll('.history-day-card');
+        const container = document.getElementById('history-list');
+        let draggedCard = null;
+
+        cards.forEach(card => {
+            card.addEventListener('dragstart', function(e) {
+                draggedCard = this;
+                setTimeout(() => this.classList.add('dragging'), 0);
+            });
+
+            card.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+                draggedCard = null;
+                saveNewOrder();
+            });
+
+            card.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(container, e.clientY);
+                if (afterElement == null) {
+                    container.appendChild(draggedCard);
+                } else {
+                    container.insertBefore(draggedCard, afterElement);
+                }
+            });
+        });
+    }
+
+    function getDragAfterElement(container, y) {
+        const draggableCards = [...container.querySelectorAll('.history-day-card:not(.dragging)')];
+
+        return draggableCards.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function saveNewOrder() {
+        const cards = document.querySelectorAll('.history-day-card');
+        const newOrder = [];
+        cards.forEach(card => {
+            newOrder.push(card.getAttribute('data-date'));
+        });
+        customDateOrder[window.selectedYearMonth] = newOrder;
+        try {
+            localStorage.setItem('moneyControlDateOrder', JSON.stringify(customDateOrder));
+        } catch (e) {}
     }
 
     function renderAll() {
@@ -823,3 +952,5 @@
 </script>
 </body>
 </html>
+
+```
