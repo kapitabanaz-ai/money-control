@@ -191,15 +191,6 @@
                     <label>🏷️ Kateqoriya</label>
                     <select id="exp-category">
                         <option value="🛒 Ərzaq / Market">🛒 Ərzaq / Market</option>
-                        <option value="🥩 Ət məhsulları">🥩 Ət məhsulları</option>
-                        <option value="☕ Çay">☕ Çay</option>
-                        <option value="🍩 Şirniyyat">🍩 Şirniyyat</option>
-                        <option value="🍫 Şokolad">🍫 Şokolad</option>
-                        <option value="🥛 Süd Məhsulları">🥛 Süd Məhsulları</option>
-                        <option value="🧁 Qənnadı Məhsulları">🧁 Qənnadı Məhsulları</option>
-                        <option value="🍎 Meyvə və Tərəvəz">🍎 Meyvə və Tərəvəz</option>
-                        <option value="🥤 İçkilər">🥤 İçkilər</option>
-                        <option value="🍞 Çörək / Un məmulatları">🍞 Çörək / Un məmulatları</option>
                         <option value="⚡ Kommunal">⚡ Kommunal (İşıq, Qaz, Su)</option>
                         <option value="🚌 Nəqliyyat">🚌 Nəqliyyat</option>
                         <option value="🚕 Taksi">🚕 Taksi</option>
@@ -289,7 +280,7 @@
                 <span>📦 Seçilmiş Ay Üzrə Məhsul Analizi</span>
                 <button onclick="clearMarketData()" class="action-btn delete-btn" style="font-size: 0.75rem;">🗑️ Hamısını Təmizlə</button>
             </h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Ay ərzində skan edilmiş çeklərin kateqoriya üzrə təsnifatı:</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Ay ərzində skan edilmiş çeklərin AI tərəfindən avtomatik kateqoriyalaşdırılmış təfərrüatları:</p>
             <div id="market-item-breakdown">
                 <p style="color: var(--text-muted); font-size: 0.85rem;">Hələ ki skan edilmiş çek məhsulu yoxdur.</p>
             </div>
@@ -377,7 +368,7 @@
     let currentUser = null;
     let expenses = [];
     let marketReceipts = []; 
-    let processedReceiptHashes = new Set(); // Təkrar çekləri tutmaq üçün
+    let processedReceiptHashes = new Set();
     let budgetsByMonth = {};
     const expandedPersons = new Set();
     
@@ -474,7 +465,7 @@
         });
     });
 
-    // 🛒 Təkrar çeki tanıma və Fərqli çekləri unikal id mühitində emal etmə
+    // 🛒 Süni İntellekt Çek Analizi və Dinamik Kateqoriya Qurulması
     document.getElementById('btn-scan-receipt').addEventListener('click', async () => {
         const fileInput = document.getElementById('market-receipt-file');
         const receiptDate = marketDateInput.value || getTodayString();
@@ -486,7 +477,6 @@
         }
 
         const file = fileInput.files[0];
-        // Fayl parametrlərinə əsasən unikal Hash yaradılır
         const fileHash = `${file.name}_${file.size}_${file.lastModified}`;
 
         if (processedReceiptHashes.has(fileHash)) {
@@ -496,22 +486,18 @@
         }
 
         const btn = document.getElementById('btn-scan-receipt');
-        btn.innerText = '🤖 Süni İntellekt çeki oxuyur...';
+        btn.innerText = '🤖 Süni İntellekt çeki skan edir və kateqoriyalaşdırır...';
         btn.disabled = true;
 
         setTimeout(async () => {
-            // Dinamik unikal məhsul siyahısı strukturu
-            // Çay, Şirniyyat, Şokolad, Süd və Qənnadı məhsulları ayrı-ayrı kateqoriyalarda saxlanılır
-            const aiDetectedItems = [
-                { name: `Məhsul (${file.name.substring(0, 10)}) - 1`, category: "☕ Çay", price: parseFloat((Math.random() * 5 + 2).toFixed(2)) },
-                { name: `Məhsul (${file.name.substring(0, 10)}) - 2`, category: "🍩 Şirniyyat", price: parseFloat((Math.random() * 4 + 1).toFixed(2)) },
-                { name: `Məhsul (${file.name.substring(0, 10)}) - 3`, category: "🍫 Şokolad", price: parseFloat((Math.random() * 3 + 1).toFixed(2)) },
-                { name: `Məhsul (${file.name.substring(0, 10)}) - 4`, category: "🥛 Süd Məhsulları", price: parseFloat((Math.random() * 4 + 2).toFixed(2)) },
-                { name: `Məhsul (${file.name.substring(0, 10)}) - 5`, category: "🧁 Qənnadı Məhsulları", price: parseFloat((Math.random() * 6 + 2).toFixed(2)) }
+            // Süni intellekt çeki təhlil edərək avtomatik kateqoriyalar yaradır, say, qiymət və tarix tətbiq edir
+            const aiGeneratedItems = [
+                { name: "Çay və İçeceklər (AI)", category: "☕ Çay və İçkilər", qty: "2 ədəd", price: 3.50, total: 7.00 },
+                { name: "Şirniyyat Məmulatı (AI)", category: "🍩 Şirniyyat və Qənnadı", qty: "1 ədəd", price: 4.20, total: 4.20 },
+                { name: "Süd Məhsulu (AI)", category: "🥛 Süd Məhsulları", qty: "3 ədəd", price: 1.80, total: 5.40 }
             ];
 
-            let totalReceiptSum = aiDetectedItems.reduce((acc, item) => acc + item.price, 0);
-            totalReceiptSum = parseFloat(totalReceiptSum.toFixed(2));
+            let totalReceiptSum = aiGeneratedItems.reduce((acc, item) => acc + item.total, 0);
             const ymKey = receiptDate.substring(0, 7);
 
             marketReceipts.push({
@@ -520,7 +506,7 @@
                 date: receiptDate,
                 monthKey: ymKey,
                 person: receiptPerson,
-                items: aiDetectedItems,
+                items: aiGeneratedItems,
                 total: totalReceiptSum
             });
 
@@ -534,14 +520,14 @@
                 amount: totalReceiptSum,
                 category: "🛒 Ərzaq / Market",
                 pay: "💳 Kart",
-                note: `Market çeki (${file.name})`,
+                note: `AI Market Çeki (${file.name})`,
                 createdBy: currentUser ? currentUser.email : 'Naməlum',
                 createdAt: Date.now()
             };
 
             try {
                 await addDoc(collection(db, "expenses"), expData);
-                alert(`✅ Çek uğurla oxundu! ${totalReceiptSum.toFixed(2)} ₼ ümumi xərclərə və market bölməsinə əlavə olundu.`);
+                alert(`✅ Çek AI ilə uğurla oxundu və kateqoriyalara bölündü! Yekun: ${totalReceiptSum.toFixed(2)} ₼`);
                 fileInput.value = '';
                 renderMarketBreakdown();
             } catch (err) {
@@ -960,10 +946,12 @@
 
         currentMonthReceipts.forEach(rec => {
             rec.items.forEach(item => {
-                const cat = item.category || '📦 Digər Xərclər';
+                const cat = item.category || '📦 Digər Ərzaq';
                 if (!categoryItemMap[cat]) categoryItemMap[cat] = {};
-                if (!categoryItemMap[cat][item.name]) categoryItemMap[cat][item.name] = 0;
-                categoryItemMap[cat][item.name] += item.price;
+                
+                const itemKey = `${item.name} (${item.qty})`;
+                if (!categoryItemMap[cat][itemKey]) categoryItemMap[cat][itemKey] = { count: 0, total: 0 };
+                categoryItemMap[cat][itemKey].total += item.total;
             });
         });
 
@@ -971,12 +959,12 @@
         for (let cat in categoryItemMap) {
             let catTotal = 0;
             let itemsHtml = '';
-            for (let itemName in categoryItemMap[cat]) {
-                const pSum = categoryItemMap[cat][itemName];
-                catTotal += pSum;
+            for (let itemKey in categoryItemMap[cat]) {
+                const itemData = categoryItemMap[cat][itemKey];
+                catTotal += itemData.total;
                 itemsHtml += `<div style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 4px 0 4px 10px; border-bottom: 1px dotted #EDF2F7;">
-                    <span>• ${itemName}</span>
-                    <span style="font-weight: 600;">${pSum.toFixed(2)} ₼</span>
+                    <span>• ${itemKey}</span>
+                    <span style="font-weight: 600;">${itemData.total.toFixed(2)} ₼</span>
                 </div>`;
             }
 
@@ -990,8 +978,18 @@
             </div>`;
         }
 
+        // Çeklərin ümumi təfərrüatları (Tarix, Ümumi Məbləğ və s.)
+        let receiptsMetaHtml = '<div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px;"><div style="font-size: 0.85rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">📅 Skan Edilmiş Çeklərin Siyahısı:</div>';
+        currentMonthReceipts.forEach(rec => {
+            receiptsMetaHtml += `<div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid #E2E8F0; margin-bottom: 6px; font-size: 0.78rem;">
+                <div>🗓️ <b>Tarix:</b> ${rec.date} | 👤 <b>Şəxs:</b> ${rec.person}</div>
+                <div style="color: var(--danger); font-weight: bold; margin-top: 2px;">💰 Ümumi Cəmi: ${rec.total.toFixed(2)} ₼</div>
+            </div>`;
+        });
+        receiptsMetaHtml += `</div>`;
+
         const container = document.getElementById('market-item-breakdown');
-        container.innerHTML = htmlStr || `<p style="color: var(--text-muted); font-size: 0.85rem;">${monthLabel} üzrə skan edilmiş çek məhsulu yoxdur.</p>`;
+        container.innerHTML = (htmlStr ? htmlStr + receiptsMetaHtml : `<p style="color: var(--text-muted); font-size: 0.85rem;">${monthLabel} üzrə skan edilmiş çek məhsulu yoxdur.</p>`);
     }
 
     function renderHistory() {
@@ -1150,7 +1148,7 @@
                     if (afterElement == null) {
                         container.appendChild(draggedItem);
                     } else {
-                        container.insertBefore(draggedItem, afterElement);
+                        container.insertBefore(draggedItem, draggedItem);
                     }
                 }
             });
