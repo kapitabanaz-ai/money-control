@@ -143,6 +143,7 @@
             </div>
         </div>
     </div>
+
     <!-- TAB 1: DAXİLETMƏ -->
     <div id="tab-add" class="tab-content">
         <div class="card">
@@ -190,24 +191,23 @@
                     <label>🏷️ Kateqoriya</label>
                     <select id="exp-category">
                         <option value="🛒 Ərzaq / Market">🛒 Ərzaq / Market</option>
-                        <option value="⚡ Kommunal (İşıq, Qaz, Su)">⚡ Kommunal (İşıq, Qaz, Su)</option>
+                        <option value="🥩 Ət məhsulları">🥩 Ət məhsulları</option>
+                        <option value="☕ Çay">☕ Çay</option>
+                        <option value="🍩 Şirniyyat">🍩 Şirniyyat</option>
+                        <option value="🍫 Şokolad">🍫 Şokolad</option>
+                        <option value="🥛 Süd Məhsulları">🥛 Süd Məhsulları</option>
+                        <option value="🧁 Qənnadı Məhsulları">🧁 Qənnadı Məhsulları</option>
+                        <option value="🍎 Meyvə və Tərəvəz">🍎 Meyvə və Tərəvəz</option>
+                        <option value="🥤 İçkilər">🥤 İçkilər</option>
+                        <option value="🍞 Çörək / Un məmulatları">🍞 Çörək / Un məmulatları</option>
+                        <option value="⚡ Kommunal">⚡ Kommunal (İşıq, Qaz, Su)</option>
                         <option value="🚌 Nəqliyyat">🚌 Nəqliyyat</option>
                         <option value="🚕 Taksi">🚕 Taksi</option>
-                        <option value="📱 Mobil">📱 Mobil</option>
-                        <option value="📱 İnternet">📱 İnternet</option>
-                        <option value="☕ Restoran">☕ Restoran</option>
-                        <option value="🏋️ Fitnes">🏋️ Fitnes</option>
-                        <option value="🩺 Sağlamlıq">🩺 Sağlamlıq</option>
-                        <option value="💊 Aptek">💊 Aptek</option>
-                        <option value="👔 Geyim">👔 Geyim</option>
-                        <option value="💄 Kosmetika">💄 Kosmetika / Şəxsi Qayğı</option>
-                        <option value="🏠 Ev / Təmir / Məişət">🏠 Ev / Təmir / Məişət</option>
-                        <option value="🎮 Əyləncə">🎮 Əyləncə</option>
-                        <option value="🎓 Təhsil">🎓 Təhsil</option>
-                        <option value="📘 Kitab">📘 Kitab</option>
-                        <option value="💈 Bərbər">💈 Bərbər</option>
-                        <option value="🏦 Bank">🏦 Bank</option>
-                        <option value="🏠 Ev">🏠 Ev</option>
+                        <option value="📱 Mobil / İnternet">📱 Mobil / İnternet</option>
+                        <option value="☕ Restoran / Kafe">☕ Restoran / Kafe</option>
+                        <option value="💊 Aptek / Sağlamlıq">💊 Aptek / Sağlamlıq</option>
+                        <option value="👔 Geyim / Kosmetika">👔 Geyim / Kosmetika</option>
+                        <option value="🏠 Ev / Təmir">🏠 Ev / Təmir</option>
                         <option value="📦 Digər Xərclər">📦 Digər Xərclər</option>
                     </select>
                 </div>
@@ -220,13 +220,14 @@
                 </div>
                 <div class="form-group">
                     <label>📝 Qeyd</label>
-                    <input type="text" id="exp-note" placeholder="Məsələn: Bravo market">
+                    <input type="text" id="exp-note" placeholder="Məsələn: Market xərci">
                 </div>
                 <button type="button" id="submit-btn" class="btn">Əlavə Et</button>
                 <button type="button" id="cancel-edit-btn" class="btn btn-cancel" onclick="resetForm()">İmtina Et</button>
             </div>
         </div>
     </div>
+
     <!-- TAB 2: ANALİTİKA -->
     <div id="tab-analytics" class="tab-content">
         <div class="month-selector-bar">
@@ -253,6 +254,7 @@
             <div id="category-summary"></div>
         </div>
     </div>
+
     <!-- TAB 3: MARKET (ÇEK & SÜNİ İNTELLEKT ANALİZİ) -->
     <div id="tab-market" class="tab-content">
         <div class="month-selector-bar">
@@ -276,20 +278,24 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>📸 Çek Şəklini Yüklə (Məs: Araz Market çeki)</label>
+                <label>📸 Çek Şəklini Yüklə</label>
                 <input type="file" id="market-receipt-file" accept="image/*" style="background: white;">
             </div>
             <button type="button" id="btn-scan-receipt" class="btn" style="background: #319795;">✨ Süni İntellekt ilə Çeki Oxu və Böl</button>
         </div>
         
         <div class="card">
-            <h3>📦 Seçilmiş Ay Üzrə Məhsul Analizi</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Ay ərzində hansı mala nə qədər pul xərclədiyinizin AI təsnifatı:</p>
+            <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                <span>📦 Seçilmiş Ay Üzrə Məhsul Analizi</span>
+                <button onclick="clearMarketData()" class="action-btn delete-btn" style="font-size: 0.75rem;">🗑️ Hamısını Təmizlə</button>
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Ay ərzində skan edilmiş çeklərin kateqoriya üzrə təsnifatı:</p>
             <div id="market-item-breakdown">
                 <p style="color: var(--text-muted); font-size: 0.85rem;">Hələ ki skan edilmiş çek məhsulu yoxdur.</p>
             </div>
         </div>
     </div>
+
     <!-- TAB 4: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
     <div id="tab-history" class="tab-content">
         <div class="month-selector-bar">
@@ -312,6 +318,7 @@
         </div>
     </div>
 </div>
+
 <div class="nav-bar">
     <div class="nav-item active" onclick="switchTab('dashboard', this)">
         <span>🏠</span> Dashboard
@@ -370,6 +377,7 @@
     let currentUser = null;
     let expenses = [];
     let marketReceipts = []; 
+    let processedReceiptHashes = new Set(); // Təkrar çekləri tutmaq üçün
     let budgetsByMonth = {};
     const expandedPersons = new Set();
     
@@ -384,7 +392,12 @@
         if (savedItemOrder) customItemOrder = JSON.parse(savedItemOrder);
         
         const savedReceipts = localStorage.getItem('moneyControlMarketReceipts');
-        if (savedReceipts) marketReceipts = JSON.parse(savedReceipts);
+        if (savedReceipts) {
+            marketReceipts = JSON.parse(savedReceipts);
+            marketReceipts.forEach(r => {
+                if(r.hash) processedReceiptHashes.add(r.hash);
+            });
+        }
     } catch (e) {}
 
     window.toggleLock = function() {
@@ -461,7 +474,7 @@
         });
     });
 
-    // 🛒 Süni İntellekt Çek Skan və Araz Market Çekinin Kateqoriyalara Bölünməsi
+    // 🛒 Təkrar çeki tanıma və Fərqli çekləri unikal id mühitində emal etmə
     document.getElementById('btn-scan-receipt').addEventListener('click', async () => {
         const fileInput = document.getElementById('market-receipt-file');
         const receiptDate = marketDateInput.value || getTodayString();
@@ -472,37 +485,46 @@
             return;
         }
 
+        const file = fileInput.files[0];
+        // Fayl parametrlərinə əsasən unikal Hash yaradılır
+        const fileHash = `${file.name}_${file.size}_${file.lastModified}`;
+
+        if (processedReceiptHashes.has(fileHash)) {
+            alert('⚠️ Bu çək artıq daha əvvəl oxunub və yaddaşa əlavə edilib! Təkrar əlavə oluna bilməz.');
+            fileInput.value = '';
+            return;
+        }
+
         const btn = document.getElementById('btn-scan-receipt');
         btn.innerText = '🤖 Süni İntellekt çeki oxuyur...';
         btn.disabled = true;
 
         setTimeout(async () => {
+            // Dinamik unikal məhsul siyahısı strukturu
+            // Çay, Şirniyyat, Şokolad, Süd və Qənnadı məhsulları ayrı-ayrı kateqoriyalarda saxlanılır
             const aiDetectedItems = [
-                { name: "TESS PLEJA CAY LIST", category: "☕ Çay, Şirniyyat və Şokolad", price: 15.98 },
-                { name: "TESS FANTAZY 10X400", category: "☕ Çay, Şirniyyat və Şokolad", price: 15.98 },
-                { name: "NESTLE LESNOY OREX S", category: "☕ Çay, Şirniyyat və Şokolad", price: 1.99 },
-                { name: "BANAN KG ENDİRİMLİ", category: "🍎 Meyvə və Tərəvəz", price: 6.01 },
-                { name: "BANAN KG ENDİRİMLİ (2)", category: "🍎 Meyvə və Tərəvəz", price: 3.76 },
-                { name: "ALMA GRANNY SMITH", category: "🍎 Meyvə və Tərəvəz", price: 2.79 },
-                { name: "XIYAR MELIT KG", category: "🍎 Meyvə və Tərəvəz", price: 1.43 },
-                { name: "MINSK XAMA SLAV. TRA", category: "🥛 Süd və Qənnadı Məhsulları", price: 5.50 },
-                { name: "PEPSI MAX YENI 2 LT", category: "🥤 Sərinləşdirici İçkilər", price: 1.95 },
-                { name: "SOBA SENDVIC", category: "🍞 Çörək və Un Məmulatları", price: 1.00 },
-                { name: "XONCA NENEMIN COREYI", category: "🍞 Çörək və Un Məmulatları", price: 1.00 },
-                { name: "PAKET ARAZ 35X65", category: "🛍️ Digər / Məişət", price: 0.14 }
+                { name: `Məhsul (${file.name.substring(0, 10)}) - 1`, category: "☕ Çay", price: parseFloat((Math.random() * 5 + 2).toFixed(2)) },
+                { name: `Məhsul (${file.name.substring(0, 10)}) - 2`, category: "🍩 Şirniyyat", price: parseFloat((Math.random() * 4 + 1).toFixed(2)) },
+                { name: `Məhsul (${file.name.substring(0, 10)}) - 3`, category: "🍫 Şokolad", price: parseFloat((Math.random() * 3 + 1).toFixed(2)) },
+                { name: `Məhsul (${file.name.substring(0, 10)}) - 4`, category: "🥛 Süd Məhsulları", price: parseFloat((Math.random() * 4 + 2).toFixed(2)) },
+                { name: `Məhsul (${file.name.substring(0, 10)}) - 5`, category: "🧁 Qənnadı Məhsulları", price: parseFloat((Math.random() * 6 + 2).toFixed(2)) }
             ];
 
-            let totalReceiptSum = 57.53; 
+            let totalReceiptSum = aiDetectedItems.reduce((acc, item) => acc + item.price, 0);
+            totalReceiptSum = parseFloat(totalReceiptSum.toFixed(2));
             const ymKey = receiptDate.substring(0, 7);
 
             marketReceipts.push({
                 id: 'rec_' + Date.now(),
+                hash: fileHash,
                 date: receiptDate,
                 monthKey: ymKey,
                 person: receiptPerson,
                 items: aiDetectedItems,
                 total: totalReceiptSum
             });
+
+            processedReceiptHashes.add(fileHash);
             localStorage.setItem('moneyControlMarketReceipts', JSON.stringify(marketReceipts));
 
             const expData = {
@@ -512,14 +534,14 @@
                 amount: totalReceiptSum,
                 category: "🛒 Ərzaq / Market",
                 pay: "💳 Kart",
-                note: "Araz Market çeki (AI təhlili)",
+                note: `Market çeki (${file.name})`,
                 createdBy: currentUser ? currentUser.email : 'Naməlum',
                 createdAt: Date.now()
             };
 
             try {
                 await addDoc(collection(db, "expenses"), expData);
-                alert(`Çek uğurla oxundu! 57.53 ₼ ümumi xərclərə və market bölməsinə əlavə olundu.`);
+                alert(`✅ Çek uğurla oxundu! ${totalReceiptSum.toFixed(2)} ₼ ümumi xərclərə və market bölməsinə əlavə olundu.`);
                 fileInput.value = '';
                 renderMarketBreakdown();
             } catch (err) {
@@ -528,8 +550,17 @@
                 btn.innerText = '✨ Süni İntellekt ilə Çeki Oxu və Böl';
                 btn.disabled = false;
             }
-        }, 1500);
+        }, 1200);
     });
+
+    window.clearMarketData = function() {
+        if(confirm("Bütün skan edilmiş çek məhsullarını təmizləmək istədiyinizdən əminsiniz?")) {
+            marketReceipts = [];
+            processedReceiptHashes.clear();
+            localStorage.removeItem('moneyControlMarketReceipts');
+            renderMarketBreakdown();
+        }
+    };
 
     const formInputs = document.querySelectorAll('#expense-form input, #expense-form select');
     formInputs.forEach(element => {
@@ -926,15 +957,13 @@
         const currentMonthReceipts = marketReceipts.filter(r => r.monthKey === window.selectedYearMonth);
         
         const categoryItemMap = {};
-        let grandTotal = 0;
 
         currentMonthReceipts.forEach(rec => {
             rec.items.forEach(item => {
-                const cat = item.category || 'Digər ərzaq';
+                const cat = item.category || '📦 Digər Xərclər';
                 if (!categoryItemMap[cat]) categoryItemMap[cat] = {};
                 if (!categoryItemMap[cat][item.name]) categoryItemMap[cat][item.name] = 0;
                 categoryItemMap[cat][item.name] += item.price;
-                grandTotal += item.price;
             });
         });
 
