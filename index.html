@@ -1,4 +1,8 @@
-Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı sürüklənərək sırasının dəyişdirilməsi və bunun kilid (qıfıl) düyməsi vasitəsilə idarə olunması üçün tətbiq edilən yenilənmiş tam kod:
+Eyni günün (1 günün) daxilində olan **fərdi xərc əməliyyatlarını (xanalarını)** yuxarı və ya aşağı sürükləyərək (`Drag and Drop`) yerini dəyişmək üçün kodu yenilədim.
+
+Qıfıl (`🔒 / 🔓`) açıq olduqda həm **günləri**, həm də **gün daxilindəki xanaları** sürükləyib yerini istədiyiniz kimi dəyişə bilərsiniz.
+
+### Tam və Yenilənmiş Kod:
 
 ```html
 <!DOCTYPE html>
@@ -59,7 +63,8 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.70rem; color: var(--text-muted); cursor: pointer; }
         .nav-item.active { color: var(--primary); font-weight: 700; }
         .nav-item span { font-size: 1.2rem; margin-bottom: 2px; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 10px 0; }
+        
+        .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 10px 0; background: #FFF; }
         .person-tag { font-size: 0.75rem; background: #EBF8FF; color: #2B6CB0; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
         .amount-tag { font-weight: 700; color: var(--danger); font-size: 1rem; }
         
@@ -73,13 +78,19 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
         .clickable-person-row { cursor: pointer; user-select: none; }
         .clickable-person-row:hover { background-color: rgba(43, 108, 176, 0.04); border-radius: 6px; }
         
-        /* Drag & Drop / Reorder Styles */
+        /* Drag & Drop Styles (Günlərin və Xanaların Sürüklənməsi) */
         .history-day-card { margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); transition: transform 0.1s, box-shadow 0.1s; position: relative; }
-        .history-day-card.draggable-enabled { border: 2px dashed var(--primary); cursor: grab; }
-        .history-day-card.draggable-enabled:active { cursor: grabbing; }
-        .history-day-card.dragging { opacity: 0.4; background: #EBF8FF; }
+        .unlocked .history-day-card { border: 2px dashed #BEE3F8; }
         
-        .drag-handle { display: none; font-size: 1rem; margin-right: 6px; color: var(--primary); cursor: grab; vertical-align: middle; }
+        .history-item.item-draggable-enabled { border: 1px dashed var(--primary); padding: 8px; border-radius: 8px; margin-bottom: 4px; cursor: grab; background: #F7FAFC; }
+        .history-item.item-draggable-enabled:active { cursor: grabbing; }
+        .history-item.dragging-item { opacity: 0.4; background: #EBF8FF; }
+
+        .history-day-card.day-draggable-enabled { cursor: grab; }
+        .history-day-card.day-draggable-enabled:active { cursor: grabbing; }
+        .history-day-card.dragging-day { opacity: 0.4; background: #EDF2F7; }
+
+        .drag-handle { display: none; font-size: 0.9rem; margin-right: 6px; color: var(--primary); cursor: grab; vertical-align: middle; }
         .unlocked .drag-handle { display: inline-block; }
 
         #auth-overlay { position: fixed; inset: 0; background: rgba(26, 54, 93, 0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
@@ -265,7 +276,7 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
                 <span>📜 Əməliyyat Tarixçəsi (<span id="history-month-label">Cari ay</span>)</span>
                 <button type="button" id="lock-toggle-btn" class="action-btn" onclick="toggleLock()" style="font-size: 1.2rem; background: none; border: none; cursor: pointer;" title="Kilidi Aç/Bağla">🔒</button>
             </h3>
-            <p id="lock-hint" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; display: none;">💡 Qıfıl açıqdır: Günləri yuxarı və ya aşağı sürükləyərək sırasını dəyişə bilərsiniz.</p>
+            <p id="lock-hint" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; display: none;">💡 Qıfıl açıqdır: Həm günləri, həm də gün daxilindəki xanaları yuxarı/aşağı sürükləyə bilərsiniz.</p>
             <div id="history-list"></div>
         </div>
     </div>
@@ -327,12 +338,16 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
     let budgetsByMonth = {};
     const expandedPersons = new Set();
     
-    // Tarixçə sıralaması üçün yaddaş (localStorage və ya yaddaş obyekti)
+    // Qıfıl və Sıralama yaddaşı
     let isHistoryUnlocked = false;
-    let customDateOrder = {}; // { "YYYY-MM": [ "2026-10-13", "2026-10-11", ... ] }
+    let customDateOrder = {}; // { "YYYY-MM": [ "2026-10-13", ... ] }
+    let customItemOrder = {}; // { "2026-10-13": [ "docId1", "docId2", ... ] }
+
     try {
-        const savedOrder = localStorage.getItem('moneyControlDateOrder');
-        if (savedOrder) customDateOrder = JSON.parse(savedOrder);
+        const savedDateOrder = localStorage.getItem('moneyControlDateOrder');
+        if (savedDateOrder) customDateOrder = JSON.parse(savedDateOrder);
+        const savedItemOrder = localStorage.getItem('moneyControlItemOrder');
+        if (savedItemOrder) customItemOrder = JSON.parse(savedItemOrder);
     } catch (e) {}
 
     window.toggleLock = function() {
@@ -353,7 +368,6 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
         renderHistory();
     };
     
-    // Cari seçilmiş ay (YYYY-MM)
     const now = new Date();
     window.selectedYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
@@ -768,7 +782,7 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
             cSummary[x.category].persons[x.person] = (cSummary[x.category].persons[x.person] || 0) + (parseFloat(x.amount) || 0);
         });
 
-        let cHTML = {};
+        let cHTML = '';
         for (let c in cSummary) {
             const cTotal = cSummary[c].total;
             const pct = total > 0 ? ((cTotal / total) * 100).toFixed(1) : 0;
@@ -781,7 +795,7 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
                 </div>`;
             }
 
-            let cardEl = `
+            cHTML += `
             <div style="margin-bottom: 14px; background: #F8FAFC; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
                 <div class="history-item" style="border:none; padding:0 0 6px 0;">
                     <strong>${c}</strong>
@@ -790,14 +804,8 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
                 <div class="progress-bar-bg" style="margin-bottom: 6px;"><div class="progress-bar-fill" style="width: ${pct}%; background:#4299E1;"></div></div>
                 <div class="sub-breakdown" style="border-left-color: #3182CE;">${persHTML}</div>
             </div>`;
-            cHTML[c] = cardEl;
         }
-        
-        let finalCHtml = '';
-        for(let c in cSummary) {
-            finalCHtml += cHTML[c];
-        }
-        document.getElementById('category-summary').innerHTML = finalCHtml || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
+        document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
     }
 
     function renderHistory() {
@@ -821,38 +829,46 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
 
         let availableDates = Object.keys(grouped);
         
-        // Sıralamanı tənzimləmək
-        let savedOrderForMonth = customDateOrder[window.selectedYearMonth] || [];
-        // Yeni yaranan tarixləri də əlavə etmək üçün
+        let savedDateOrder = customDateOrder[window.selectedYearMonth] || [];
         let sortedDates = [];
-        savedOrderForMonth.forEach(d => {
-            if (availableDates.includes(d)) {
-                sortedDates.push(d);
-            }
+        savedDateOrder.forEach(d => {
+            if (availableDates.includes(d)) sortedDates.push(d);
         });
         availableDates.forEach(d => {
-            if (!sortedDates.includes(d)) {
-                sortedDates.push(d);
-            }
+            if (!sortedDates.includes(d)) sortedDates.push(d);
         });
-        // Əgər heç yaddaşda yoxdursa standart azalan sıra
-        if (savedOrderForMonth.length === 0) {
+        if (savedDateOrder.length === 0) {
             sortedDates.sort((a, b) => new Date(b) - new Date(a));
         }
 
         let hHTML_str = '';
 
         sortedDates.forEach(date => {
-            const dayItems = grouped[date];
+            let dayItems = grouped[date];
             const dayTotal = dayItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
+            // Gün daxilindəki xanaların xüsusi sıralaması
+            let savedItemOrderForDay = customItemOrder[date] || [];
+            let sortedItems = [];
+            savedItemOrderForDay.forEach(id => {
+                const found = dayItems.find(item => item.id === id);
+                if (found) sortedItems.push(found);
+            });
+            dayItems.forEach(item => {
+                if (!sortedItems.some(i => i.id === item.id)) sortedItems.push(item);
+            });
+
             let itemsHtml = '';
-            dayItems.forEach(x => {
+            sortedItems.forEach(x => {
                 const amt = (parseFloat(x.amount) || 0).toFixed(2);
                 itemsHtml += `
-                <div class="history-item">
+                <div class="history-item ${isHistoryUnlocked ? 'item-draggable-enabled' : ''}" draggable="${isHistoryUnlocked}" data-id="${x.id}">
                     <div>
-                        <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
+                        <div>
+                            <span class="drag-handle">☰</span>
+                            <strong>${x.category}</strong> 
+                            <span class="person-tag">${x.person}</span>
+                        </div>
                         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
                             ${x.pay} ${x.note ? '| ' + x.note : ''} | ✉️ ${x.createdBy || 'Naməlum'}
                         </div>
@@ -868,11 +884,13 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
             });
 
             hHTML_str += `
-            <div class="history-day-card ${isHistoryUnlocked ? 'draggable-enabled' : ''}" draggable="${isHistoryUnlocked}" data-date="${date}">
+            <div class="history-day-card ${isHistoryUnlocked ? 'day-draggable-enabled' : ''}" draggable="${isHistoryUnlocked}" data-date="${date}">
                 <div style="color: #3182CE; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px; display: flex; align-items: center;">
                     <span class="drag-handle">☰</span> 📅 ${date}
                 </div>
-                ${itemsHtml}
+                <div class="day-items-container" data-date="${date}">
+                    ${itemsHtml}
+                </div>
                 <div style="text-align: right; font-weight: 850; color: var(--danger); font-size: 1rem; border-top: 1px dashed #CBD5E0; padding-top: 8px; margin-top: 8px;">
                     -${dayTotal.toFixed(2)} ₼
                 </div>
@@ -887,40 +905,80 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
         }
     }
 
-    // Drag and Drop funksionallığı (Mobil və Desktop dəstəyi ilə)
+    // Günlərin və Gün daxilindəki Xanaların Sürüklənməsi
     function initDragAndDrop() {
-        const cards = document.querySelectorAll('.history-day-card');
-        const container = document.getElementById('history-list');
-        let draggedCard = null;
+        // 1. Gün kartlarının sürüklənməsi
+        const dayCards = document.querySelectorAll('.history-day-card');
+        const historyList = document.getElementById('history-list');
+        let draggedDayCard = null;
 
-        cards.forEach(card => {
+        dayCards.forEach(card => {
             card.addEventListener('dragstart', function(e) {
-                draggedCard = this;
-                setTimeout(() => this.classList.add('dragging'), 0);
+                if (e.target.classList.contains('history-item') || e.target.closest('.history-item')) return;
+                draggedDayCard = this;
+                setTimeout(() => this.classList.add('dragging-day'), 0);
             });
 
-            card.addEventListener('dragend', function() {
-                this.classList.remove('dragging');
-                draggedCard = null;
-                saveNewOrder();
+            card.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging-day');
+                draggedDayCard = null;
+                saveDateOrder();
             });
 
             card.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                const afterElement = getDragAfterElement(container, e.clientY);
-                if (afterElement == null) {
-                    container.appendChild(draggedCard);
-                } else {
-                    container.insertBefore(draggedCard, afterElement);
+                if (draggedDayCard) {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(historyList, e.clientY, '.history-day-card:not(.dragging-day)');
+                    if (afterElement == null) {
+                        historyList.appendChild(draggedDayCard);
+                    } else {
+                        historyList.insertBefore(draggedDayCard, afterElement);
+                    }
+                }
+            });
+        });
+
+        // 2. Gün daxilindəki fərdi xanaların (history-item) sürüklənməsi
+        const itemContainers = document.querySelectorAll('.day-items-container');
+        let draggedItem = null;
+
+        itemContainers.forEach(container => {
+            const items = container.querySelectorAll('.history-item');
+
+            items.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    e.stopPropagation();
+                    draggedItem = this;
+                    setTimeout(() => this.classList.add('dragging-item'), 0);
+                });
+
+                item.addEventListener('dragend', function(e) {
+                    e.stopPropagation();
+                    this.classList.remove('dragging-item');
+                    draggedItem = null;
+                    saveItemOrder(container);
+                });
+            });
+
+            container.addEventListener('dragover', function(e) {
+                if (draggedItem) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const afterElement = getDragAfterElement(container, e.clientY, '.history-item:not(.dragging-item)');
+                    if (afterElement == null) {
+                        container.appendChild(draggedItem);
+                    } else {
+                        container.insertBefore(draggedItem, afterElement);
+                    }
                 }
             });
         });
     }
 
-    function getDragAfterElement(container, y) {
-        const draggableCards = [...container.querySelectorAll('.history-day-card:not(.dragging)')];
+    function getDragAfterElement(container, y, selector) {
+        const elements = [...container.querySelectorAll(selector)];
 
-        return draggableCards.reduce((closest, child) => {
+        return elements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
             const offset = y - box.top - box.height / 2;
             if (offset < 0 && offset > closest.offset) {
@@ -931,7 +989,7 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
-    function saveNewOrder() {
+    function saveDateOrder() {
         const cards = document.querySelectorAll('.history-day-card');
         const newOrder = [];
         cards.forEach(card => {
@@ -940,6 +998,19 @@ Tarixçə bölməsində günlərin (və ya tarix bloklarının) yuxarı/aşağı
         customDateOrder[window.selectedYearMonth] = newOrder;
         try {
             localStorage.setItem('moneyControlDateOrder', JSON.stringify(customDateOrder));
+        } catch (e) {}
+    }
+
+    function saveItemOrder(container) {
+        const date = container.getAttribute('data-date');
+        const items = container.querySelectorAll('.history-item');
+        const newItemOrder = [];
+        items.forEach(item => {
+            newItemOrder.push(item.getAttribute('data-id'));
+        });
+        customItemOrder[date] = newItemOrder;
+        try {
+            localStorage.setItem('moneyControlItemOrder', JSON.stringify(customItemOrder));
         } catch (e) {}
     }
 
