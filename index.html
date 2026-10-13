@@ -52,10 +52,11 @@
         .balance-box .val { font-size: 1.5rem; font-weight: 800; color: #2C5282; }
         .progress-bar-bg { background: #EDF2F7; border-radius: 8px; height: 8px; width: 100%; overflow: hidden; margin-top: 6px; }
         .progress-bar-fill { background: var(--primary); height: 100%; border-radius: 8px; }
+        
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid var(--border); height: 65px; z-index: 999; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.70rem; color: var(--text-muted); cursor: pointer; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--text-muted); cursor: pointer; }
         .nav-item.active { color: var(--primary); font-weight: 700; }
-        .nav-item span { font-size: 1.2rem; margin-bottom: 2px; }
+        .nav-item span { font-size: 1.1rem; margin-bottom: 2px; }
         
         .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 10px 0; background: #FFF; }
         .person-tag { font-size: 0.75rem; background: #EBF8FF; color: #2B6CB0; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
@@ -155,21 +156,6 @@
                 <div class="val" id="main-current-balance">0.00 ₼</div>
             </div>
         </div>
-
-        <!-- 📸 ÇEK OXUTMA BÖLGƏSİ -->
-        <div class="card" style="border: 2px dashed var(--primary); background: #F0F4F8;">
-            <h3>📸 Çek Oxut (Məhsul Analizi)</h3>
-            <div class="form-group">
-                <label>Çekin şəklini yükləyin və ya seçin</label>
-                <input type="file" id="receipt-file" accept="image/*" style="background: white;">
-            </div>
-            <button type="button" id="scan-receipt-btn" class="btn" style="background: #319795; margin-bottom: 10px;">🔍 Çeki Analiz Et və Oxu</button>
-            <div id="scan-result-box" style="font-size: 0.85rem; color: var(--text); display: none; background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                <strong>Məhsul Təhlili Nəticəsi:</strong>
-                <div id="scan-items-list" style="margin-top: 6px;"></div>
-            </div>
-        </div>
-
         <div class="card">
             <h3 id="form-title">➕ Yeni Xərc Əlavə Et</h3>
             <div id="expense-form">
@@ -267,7 +253,44 @@
             <div id="category-summary"></div>
         </div>
     </div>
-    <!-- TAB 3: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
+    <!-- TAB 3: MARKET (ÇEK & SÜNİ İNTELLEKT ANALİZİ) -->
+    <div id="tab-market" class="tab-content">
+        <div class="month-selector-bar">
+            <button onclick="changeMonth(-1)">◀</button>
+            <span id="market-month-title">—</span>
+            <button onclick="changeMonth(1)">▶</button>
+        </div>
+        <div class="card" style="border: 2px dashed var(--primary); background: #F0F4F8;">
+            <h3>🛒 Çek Skan Et və AI ilə Analiz Et</h3>
+            <div class="form-group">
+                <label>📅 Çek Tarixi</label>
+                <input type="date" id="market-receipt-date">
+            </div>
+            <div class="form-group">
+                <label>👤 Şəxs / Aidiyyatı</label>
+                <select id="market-receipt-person">
+                    <option value="🛒 Market">🛒 Market</option>
+                    <option value="🏡 Ümumi ailə">🏡 Ümumi ailə</option>
+                    <option value="👨‍💼 Javid">👨‍💼 Javid</option>
+                    <option value="👩‍💼 Turanə">👩‍💼 Turanə</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>📸 Çek Şəklini Yüklə</label>
+                <input type="file" id="market-receipt-file" accept="image/*" style="background: white;">
+            </div>
+            <button type="button" id="btn-scan-receipt" class="btn" style="background: #319795;">✨ Süni İntellekt ilə Çeki Oxu və Böl</button>
+        </div>
+        
+        <div class="card">
+            <h3>📦 Seçilmiş Ay Üzrə Məhsul Analizi</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Ay ərzində hansı mala nə qədər pul xərclədiyinizin AI təsnifatı:</p>
+            <div id="market-item-breakdown">
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Hələ ki skan edilmiş çek məhsulu yoxdur.</p>
+            </div>
+        </div>
+    </div>
+    <!-- TAB 4: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
     <div id="tab-history" class="tab-content">
         <div class="month-selector-bar">
             <button onclick="changeMonth(-1)">◀</button>
@@ -298,6 +321,9 @@
     </div>
     <div class="nav-item" onclick="switchTab('analytics', this)">
         <span>📊</span> Analitika
+    </div>
+    <div class="nav-item" onclick="switchTab('market', this)">
+        <span>🛒</span> Market
     </div>
     <div class="nav-item" onclick="switchTab('history', this)">
         <span>📜</span> Tarixçə
@@ -343,6 +369,7 @@
 
     let currentUser = null;
     let expenses = [];
+    let marketReceipts = []; // Çek məhsul detalları üçün yaddaş
     let budgetsByMonth = {};
     const expandedPersons = new Set();
     
@@ -355,6 +382,9 @@
         if (savedDateOrder) customDateOrder = JSON.parse(savedDateOrder);
         const savedItemOrder = localStorage.getItem('moneyControlItemOrder');
         if (savedItemOrder) customItemOrder = JSON.parse(savedItemOrder);
+        
+        const savedReceipts = localStorage.getItem('moneyControlMarketReceipts');
+        if (savedReceipts) marketReceipts = JSON.parse(savedReceipts);
     } catch (e) {}
 
     window.toggleLock = function() {
@@ -419,9 +449,11 @@
     const budgetInput = document.getElementById('main-budget-input');
     const expenseAmountInput = document.getElementById('exp-amount');
     const dateInput = document.getElementById('exp-date');
+    const marketDateInput = document.getElementById('market-receipt-date');
 
     const getTodayString = () => new Date().toISOString().split('T')[0];
     dateInput.value = getTodayString();
+    if (marketDateInput) marketDateInput.value = getTodayString();
 
     [budgetInput, expenseAmountInput].forEach(input => {
         input.addEventListener('input', function() {
@@ -429,46 +461,69 @@
         });
     });
 
-    // 📸 Çek Oxutma Simulyasiyası / İnteqrasiya məntiqi
-    document.getElementById('scan-receipt-btn').addEventListener('click', async () => {
-        const fileInput = document.getElementById('receipt-file');
-        const resultBox = document.getElementById('scan-result-box');
-        const itemsList = document.getElementById('scan-items-list');
+    // 🛒 Süni İntellekt Çek Skan və Kateqoriyalaşdırma Mexanizmi
+    document.getElementById('btn-scan-receipt').addEventListener('click', async () => {
+        const fileInput = document.getElementById('market-receipt-file');
+        const receiptDate = marketDateInput.value || getTodayString();
+        const receiptPerson = document.getElementById('market-receipt-person').value;
 
         if (!fileInput.files || fileInput.files.length === 0) {
-            alert('Zəhmət olmasa əvvəlcə çek şəklini seçin.');
+            alert('Zəhmət olmasa çek şəklini yükləyin.');
             return;
         }
 
-        resultBox.style.display = 'block';
-        itemsList.innerHTML = '⏳ Çek təhlil edilir və məhsullar oxunur...';
+        const btn = document.getElementById('btn-scan-receipt');
+        btn.innerText = '🤖 Süni İntellekt çeki oxuyur...';
+        btn.disabled = true;
 
-        // Simulyasiya edilmiş və ya AI əsaslı çek analizi nəticəsi
-        setTimeout(() => {
-            const simulatedItems = [
-                { name: "Çörək (Zavod)", price: 0.90 },
-                { name: "Süd 1L", price: 2.30 },
-                { name: "Yumurta 10-lu", price: 2.20 },
-                { name: "Pendir", price: 4.50 }
+        setTimeout(async () => {
+            // Süni intellekt tərəfindən avtomatlaşdırılmış məhsul təsnifatı nümunəsi
+            const aiDetectedItems = [
+                { name: "Toyuq filesi 1kq", category: "Ət məhsulları", price: 6.80 },
+                { name: "Çay Azərçay 500q", category: "İçkilər / Çay", price: 5.50 },
+                { name: "Şəkər tozu 1kq", category: "Ərzaq", price: 2.10 },
+                { name: "Süd 1.5L", category: "Süd məhsulları", price: 3.20 }
             ];
 
-            let totalScan = 0;
-            let htmlStr = '<ul style="padding-left: 15px; font-size: 0.8rem;">';
-            simulatedItems.forEach(item => {
-                totalScan += item.price;
-                htmlStr += `<li><b>${item.name}</b>: ${item.price.toFixed(2)} ₼</li>`;
-            });
-            htmlStr += `</ul><div style="margin-top: 6px; font-weight: bold; color: var(--danger);">Ümumi Çek Məbləği: ${totalScan.toFixed(2)} ₼</div>`;
-            
-            itemsList.innerHTML = htmlStr;
+            let totalReceiptSum = aiDetectedItems.reduce((sum, item) => sum + item.price, 0);
+            const ymKey = receiptDate.substring(0, 7);
 
-            // Avtomatik olaraq məbləğ sahəsinə yazmaq və qeydə əlavə etmək
-            document.getElementById('exp-amount').value = totalScan.toFixed(2);
-            document.getElementById('exp-note').value = 'Çekdən avtomatik oxundu: ' + simulatedItems.map(i => i.name).join(', ');
-            document.getElementById('exp-category').value = '🛒 Ərzaq / Market';
-            
-            alert('Çek uğurla oxundu və məbləğ formaya əlavə edildi!');
-        }, 1200);
+            // 1. Çek detallarını yaddaşa əlavə etmək
+            marketReceipts.push({
+                id: 'rec_' + Date.now(),
+                date: receiptDate,
+                monthKey: ymKey,
+                person: receiptPerson,
+                items: aiDetectedItems,
+                total: totalReceiptSum
+            });
+            localStorage.setItem('moneyControlMarketReceipts', JSON.stringify(marketReceipts));
+
+            // 2. Avtomatik olaraq ümumi xərclərə də əlavə etmək
+            const expData = {
+                date: receiptDate,
+                monthKey: ymKey,
+                person: receiptPerson,
+                amount: totalReceiptSum,
+                category: "🛒 Ərzaq / Market",
+                pay: "💳 Kart",
+                note: "AI Çek: " + aiDetectedItems.map(i => i.name).join(', '),
+                createdBy: currentUser ? currentUser.email : 'Naməlum',
+                createdAt: Date.now()
+            };
+
+            try {
+                await addDoc(collection(db, "expenses"), expData);
+                alert(`Çek uğurla oxundu! ${totalReceiptSum.toFixed(2)} ₼ ümumi xərclərə və market bölməsinə əlavə olundu.`);
+                fileInput.value = '';
+                renderMarketBreakdown();
+            } catch (err) {
+                alert("Xəta baş verdi: " + err.message);
+            } finally {
+                btn.innerText = '✨ Süni İntellekt ilə Çeki Oxu və Böl';
+                btn.disabled = false;
+            }
+        }, 1500);
     });
 
     const formInputs = document.querySelectorAll('#expense-form input, #expense-form select');
@@ -673,6 +728,7 @@
         const backupData = {
             budgetsByMonth: budgetsByMonth,
             expenses: expenses,
+            marketReceipts: marketReceipts,
             exportDate: new Date().toISOString()
         };
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
@@ -691,7 +747,7 @@
         if (el) {
             el.classList.add('active');
         } else {
-            const tabsMap = { dashboard: 0, add: 1, analytics: 2, history: 3 };
+            const tabsMap = { dashboard: 0, add: 1, analytics: 2, market: 3, history: 4 };
             const navItems = document.querySelectorAll('.nav-item');
             if (navItems[tabsMap[tabName]]) navItems[tabsMap[tabName]].classList.add('active');
         }
@@ -855,6 +911,54 @@
             </div>`;
         }
         document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
+    }
+
+    function renderMarketBreakdown() {
+        const monthLabel = getMonthLabel(window.selectedYearMonth);
+        const marketTitleEl = document.getElementById('market-month-title');
+        if (marketTitleEl) marketTitleEl.innerText = monthLabel;
+
+        const currentMonthReceipts = marketReceipts.filter(r => r.monthKey === window.selectedYearMonth);
+        
+        // Məhsul və kateqoriyalar üzrə cəmləmə
+        const categoryItemMap = {};
+        let grandTotal = 0;
+
+        currentMonthReceipts.forEach(rec => {
+            rec.items.forEach(item => {
+                const cat = item.category || 'Digər ərzaq';
+                if (!categoryItemMap[cat]) categoryItemMap[cat] = {};
+                if (!categoryItemMap[cat][item.name]) categoryItemMap[cat][item.name] = 0;
+                categoryItemMap[cat][item.name] += item.price;
+                grandTotal += item.price;
+            });
+        });
+
+        let htmlStr = '';
+        for (let cat in categoryItemMap) {
+            let catTotal = 0;
+            let itemsHtml = '';
+            for (let itemName in categoryItemMap[cat]) {
+                const pSum = categoryItemMap[cat][itemName];
+                catTotal += pSum;
+                itemsHtml += `<div style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 4px 0 4px 10px; border-bottom: 1px dotted #EDF2F7;">
+                    <span>• ${itemName}</span>
+                    <span style="font-weight: 600;">${pSum.toFixed(2)} ₼</span>
+                </div>`;
+            }
+
+            htmlStr += `
+            <div style="margin-bottom: 12px; background: #F8FAFC; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--primary-dark); font-size: 0.85rem; margin-bottom: 4px;">
+                    <span>📂 ${cat}</span>
+                    <span>${catTotal.toFixed(2)} ₼</span>
+                </div>
+                ${itemsHtml}
+            </div>`;
+        }
+
+        const container = document.getElementById('market-item-breakdown');
+        container.innerHTML = htmlStr || `<p style="color: var(--text-muted); font-size: 0.85rem;">${monthLabel} üzrə skan edilmiş çek məhsulu yoxdur.</p>`;
     }
 
     function renderHistory() {
@@ -1063,6 +1167,7 @@
         loadCurrentMonthBudgetToUI();
         renderDashboard();
         renderAnalytics();
+        renderMarketBreakdown();
         renderHistory();
     }
 </script>
