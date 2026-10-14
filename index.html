@@ -75,8 +75,11 @@
         .market-item-row { cursor: pointer; transition: background 0.15s; border-radius: 6px; padding: 4px 6px; }
         .market-item-row:hover { background: #EDF2F7; }
 
+        .cat-summary-row { cursor: pointer; transition: background 0.2s; padding: 6px; border-radius: 8px; }
+        .cat-summary-row:hover { background: #E6FFFA; }
+
         #product-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
-        .product-modal-card { background: white; padding: 20px; border-radius: 14px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .product-modal-card { background: white; padding: 20px; border-radius: 14px; width: 100%; max-width: 440px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
 
         .history-day-card { margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); transition: transform 0.1s, box-shadow 0.1s; position: relative; }
         .unlocked .history-day-card { border: 2px dashed #BEE3F8; }
@@ -112,11 +115,11 @@
     </div>
 </div>
 
-<!-- PRODUCT DETAIL MODAL -->
+<!-- PRODUCT & CATEGORY DETAIL MODAL -->
 <div id="product-modal" onclick="closeProductModal()">
     <div class="product-modal-card" onclick="event.stopPropagation()">
         <h3 style="margin-bottom: 12px; color: var(--primary-dark); border-bottom: 1px solid var(--border); padding-bottom: 6px; display: flex; justify-content: space-between;">
-            <span>🏷️ Məhsul Detalları</span>
+            <span id="modal-title">🏷️ Məhsul Detalları</span>
             <button onclick="closeProductModal()" class="action-btn" style="font-size: 1rem;">✕</button>
         </h3>
         <div id="modal-product-content" style="font-size: 0.9rem; line-height: 1.6;"></div>
@@ -305,7 +308,7 @@
                 <span>🧾 Çeklərin Tərkibi və Kateqoriyalar</span>
                 <button onclick="clearMarketData()" class="action-btn delete-btn" style="font-size: 0.72rem;">🗑️ Ayın siyahısını sil</button>
             </h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Məhsulların üzərinə klikləməklə tam çəkisini, miqdarını və digər detallarını görə bilərsiniz:</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Məhsulların və ya kateqoriyanın üzərinə klikləməklə tam çəkisini, miqdarını və digər detallarını görə bilərsiniz:</p>
             <div id="market-item-breakdown">
                 <p style="color: var(--text-muted); font-size: 0.85rem;">Hələ ki skan edilmiş çek yoxdur.</p>
             </div>
@@ -479,7 +482,6 @@
         });
     });
 
-    // ===== ÇEK OXUMA: təmizləmə filterləri və parser =====
     const normTxt = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[əƏ]/g, 'E').replace(/ı/g, 'I').toUpperCase();
 
     const CATEGORY_RULES = [
@@ -520,12 +522,11 @@
         return (total > 0 && pharm / total >= 0.5) ? '💊 Aptek' : '🛒 Ərzaq / Market';
     }
 
-    // Lazımsız sistem sətirlərini və xidməti simvolları yoxlayan funksiya
     function isIgnorableLine(line) {
         const upper = normTxt(line);
-        if (/^(OOO|RR|KK|OK)+$/i.test(upper)) return true;
-        if (/ODANIS|NAGDS|NAGD|BONUS|AVANS|NISYA|NOVBA|NKA|ZAVOD|FISKAL|MQ-NIN|QEYDIYYAT|EDV|GERI|QAYTARILMASi|HAYATA|KECIRILMAVIB|FAIZ|DV\s*:/i.test(upper)) return true;
-        if (/^[\W_]+$/.test(line)) return true; // Yalnız simvoldan ibarət sətirlər
+        if (/^(OOO|RR|KK|OK|EE)+$/i.test(upper)) return true;
+        if (/ODANIS|NAGDS|NAGD|BONUS|AVANS|NISYA|NOVBA|NKA|ZAVOD|FISKAL|MQ-NIN|QEYDIYYAT|EDV|GERI|QAYTARILMASI|HAYATA|KECIRILMAVIB|FAIZ|DV\s*:/i.test(upper)) return true;
+        if (/^[\W_]+$/.test(line)) return true;
         return false;
     }
 
@@ -549,6 +550,11 @@
         const card = text.match(/Na[gğ]ds[iıi]z\s*[:;]\s*(\d+[.,]\d{2})/i);
         if (card && toNum(card[1]) > 0) out.pay = '💳 Kart';
         else if (cash && toNum(cash[1]) > 0) out.pay = '💵 Nəqd';
+
+        let totalMatch = text.match(/Cami\s*[:;]?\s*(\d+[.,]\d{2})/i) || text.match(/Nagdsiz\s*[:;]?\s*(\d+[.,]\d{2})/i) || text.match(/Nagd\s*[:;]?\s*(\d+[.,]\d{2})/i);
+        if (totalMatch) {
+            out.total = toNum(totalMatch[1]);
+        }
 
         let start = lines.findIndex(l => /Say\s+Q[iı]ym/i.test(l));
         start = start >= 0 ? start + 1 : 0;
@@ -592,11 +598,22 @@
             it.name = it.name.replace(/\(\s*(EDED|ƏDƏD|aded|adad)\s*\)/gi, '').replace(/\s{2,}/g, ' ').trim();
             it.category = categorizeItem(it.name, out.store);
         });
+
+        if (out.items.length === 0 && out.total > 0) {
+            out.items.push({
+                name: 'Çek üzrə ümumi ödəniş',
+                unit: 'ədəd',
+                qty: 1,
+                unitPrice: out.total,
+                total: out.total,
+                category: isPharmacy(out.store) ? FALLBACK_PHARM : FALLBACK_FOOD
+            });
+        }
+
         if (!out.total) out.total = parseFloat(out.items.reduce((a, b) => a + b.total, 0).toFixed(2));
         return out;
     }
 
-    // ===== ÇEK SKAN: Toplu OCR + yoxlama ekranı =====
     let pendingReceipts = []; 
     const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const fmt = n => (parseFloat(n) || 0).toFixed(2);
@@ -686,7 +703,7 @@
                 };
                 rec.expCategory = pickExpenseCategory(rec.items, rec.store);
                 if (rec.items.length === 0) {
-                    rec.items.push({ name: '', unit: 'ədəd', qty: 1, unitPrice: 0, total: 0, category: isPharmacy(parsed.store) ? FALLBACK_PHARM : FALLBACK_FOOD });
+                    rec.items.push({ name: 'Çek üzrə ödəniş', unit: 'ədəd', qty: 1, unitPrice: rec.total, total: rec.total, category: isPharmacy(parsed.store) ? FALLBACK_PHARM : FALLBACK_FOOD });
                 }
                 pendingReceipts.push(rec);
             }
@@ -851,6 +868,7 @@
     };
 
     window.showProductDetails = function(name, unit, qty, unitPrice, total, category, store, date) {
+        document.getElementById('modal-title').innerText = '🏷️ Məhsul Detalları';
         const modalContent = document.getElementById('modal-product-content');
         modalContent.innerHTML = `
             <p><strong>🛍️ Məhsul:</strong> ${esc(name)}</p>
@@ -861,6 +879,59 @@
             <p><strong>🏪 Obyekt:</strong> ${esc(store || '—')}</p>
             <p><strong>📅 Tarix:</strong> ${esc(date || '—')}</p>
         `;
+        document.getElementById('product-modal').style.display = 'flex';
+    };
+
+    // Kateqoriyanın üzərinə kliklədikdə həmin kateqoriyadakı bütün məhsulları göstərən modal funksiyası
+    window.showCategoryDetails = function(categoryName) {
+        document.getElementById('modal-title').innerText = `📊 ${categoryName} — Detallı Siyahı`;
+        const modalContent = document.getElementById('modal-product-content');
+        
+        const recs = monthReceipts();
+        let catItems = [];
+
+        recs.forEach(x => {
+            if (x.receipt && Array.isArray(x.receipt.items)) {
+                x.receipt.items.forEach(it => {
+                    const c = it.category || FALLBACK_FOOD;
+                    if (c === categoryName) {
+                        catItems.push({
+                            ...it,
+                            store: x.receipt.store || 'Market / Obyekt',
+                            date: x.date || '—'
+                        });
+                    }
+                });
+            }
+        });
+
+        if (catItems.length === 0) {
+            modalContent.innerHTML = `<p style="color: var(--text-muted);">Bu kateqoriya üzrə məhsul tapılmadı.</p>`;
+        } else {
+            let totalCatSum = catItems.reduce((a, b) => a + (parseFloat(b.total) || 0), 0);
+            let itemsHtml = catItems.map(it => `
+                <div style="border-bottom: 1px solid var(--border); padding: 8px 0;">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span>🛒 ${esc(it.name)}</span>
+                        <span style="color:var(--danger);">${fmt(it.total)} ₼</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+                        🏪 <strong>Obyekt:</strong> ${esc(it.store)} <br>
+                        📅 <strong>Tarix:</strong> ${esc(it.date)} <br>
+                        ⚖️ <strong>Miqdar / Çəki:</strong> ${fmtQty(it.qty)} ${esc(it.unit || 'ədəd')} × ${fmt(it.unitPrice)} ₼
+                    </div>
+                </div>
+            `).join('');
+
+            modalContent.innerHTML = `
+                <div style="margin-bottom:12px; background:#E6FFFA; padding:10px; border-radius:8px; font-weight:bold; color:#2C7A7B; display:flex; justify-content:space-between;">
+                    <span>Cəmi Məhsul Sayı: ${catItems.length}</span>
+                    <span>Ümumi Məbləğ: ${fmt(totalCatSum)} ₼</span>
+                </div>
+                <div>${itemsHtml}</div>
+            `;
+        }
+
         document.getElementById('product-modal').style.display = 'flex';
     };
 
@@ -1242,10 +1313,11 @@
         let summaryHtml = '';
         Object.entries(catTotals).sort((a, b) => b[1].total - a[1].total).forEach(([c, v]) => {
             const pct = itemsSum > 0 ? (v.total / itemsSum * 100) : 0;
+            const safeCatName = esc(c).replace(/'/g, "\\'");
             summaryHtml += `
-            <div style="margin-bottom:8px;">
+            <div class="cat-summary-row" onclick="showCategoryDetails('${safeCatName}')" style="margin-bottom:8px;">
                 <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
-                    <span>${esc(c)} <span style="color:var(--text-muted); font-size:0.72rem;">(${v.count})</span></span>
+                    <span>${esc(c)} <span style="color:var(--text-muted); font-size:0.72rem;">(${v.count}) — detay üçün kliklə</span></span>
                     <strong>${v.total.toFixed(2)} ₼ <span style="color:var(--text-muted); font-weight:400;">· ${pct.toFixed(0)}%</span></strong>
                 </div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct.toFixed(1)}%; background:#319795;"></div></div>
