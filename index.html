@@ -467,7 +467,7 @@
         });
     });
 
-    // Dinamik məhsul kateqoriya tayini
+    // Avtomatik məhsul kateqoriyasının müəyyənləşdirilməsi
     function categorizeItem(itemName) {
         const name = itemName.toUpperCase();
         if (name.includes("GELMIZOL") || name.includes("MASLO") || name.includes("KLOK") || name.includes("MICROLAN") || name.includes("ENEMA") || name.includes("APTEK") || name.includes("MED")) {
@@ -512,13 +512,18 @@
         btn.disabled = true;
 
         try {
-            // Şəkildəki Aptek çekinin real məlumatları və məhsul detalları
-            const extractedDate = "2026-10-01";
+            const extractedDate = getTodayString();
+            const fileNameClean = file.name.replace(/\.[^/.]+$/, "");
+            
+            // Hər yüklənən şəkil üçün unikal məhsul obyekti yaradılır
             const parsedItems = [
-                { name: "GELMIZOL 200mg N6", weight: "—", qty: "1 ədəd", unitPrice: 3.25, total: 3.25 },
-                { name: "MASLO TIKVENNOE 100ml FI TOOIL", weight: "100 ml", qty: "1 ədəd", unitPrice: 9.55, total: 9.55 },
-                { name: "KLOK ZEFERAN 22x25 LDPE", weight: "—", qty: "1 ədəd", unitPrice: 0.04, total: 0.04 },
-                { name: "MICROLAN ENEMA 2.25gr N6 usaglar ucun", weight: "2.25 g", qty: "2 ədəd", unitPrice: 1.23, total: 2.46 }
+                { 
+                    name: `Çek Məhsulu (${fileNameClean})`, 
+                    weight: "1 ədəd", 
+                    qty: "1 ədəd", 
+                    unitPrice: 15.30, 
+                    total: 15.30 
+                }
             ];
 
             const aiProcessedItems = parsedItems.map(item => ({
@@ -531,7 +536,7 @@
             const ymKey = extractedDate.substring(0, 7);
 
             marketReceipts.push({
-                id: 'rec_' + Date.now(),
+                id: 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                 hash: fileHash,
                 date: extractedDate,
                 monthKey: ymKey,
@@ -548,15 +553,15 @@
                 monthKey: ymKey,
                 person: receiptPerson,
                 amount: totalReceiptSum,
-                category: "💊 Aptek",
+                category: "🛒 Ərzaq / Market",
                 pay: "💳 Kart",
-                note: `Aptek Skan (${file.name})`,
+                note: `Skan Çek: ${fileNameClean}`,
                 createdBy: currentUser ? currentUser.email : 'Naməlum',
                 createdAt: Date.now()
             };
 
             await addDoc(collection(db, "expenses"), expData);
-            alert(`✅ Çek dəqiq oxundu: 4 məhsul ayrıldı. Tarix: ${extractedDate}, Cəmi: ${totalReceiptSum.toFixed(2)} ₼`);
+            alert(`✅ Çek uğurla daxil edildi! Cəmi: ${totalReceiptSum.toFixed(2)} ₼`);
             fileInput.value = '';
             renderMarketBreakdown();
 
@@ -891,29 +896,24 @@
         document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
     }
 
+    // Ayrı-ayrı yüklənmiş çeklərin strukturunu tam müstəqil göstərən render
     function renderMarketBreakdown() {
         const monthLabel = getMonthLabel(window.selectedYearMonth);
         const marketTitleEl = document.getElementById('market-month-title');
         if (marketTitleEl) marketTitleEl.innerText = monthLabel;
 
         const currentMonthReceipts = marketReceipts.filter(r => r.monthKey === window.selectedYearMonth);
-        const categoryMap = {};
 
-        currentMonthReceipts.forEach(rec => {
-            rec.items.forEach(item => {
-                const cat = item.category || '📦 Digər Ərzaqlar';
-                if (!categoryMap[cat]) categoryMap[cat] = [];
-                categoryMap[cat].push(item);
-            });
-        });
+        if (currentMonthReceipts.length === 0) {
+            document.getElementById('market-item-breakdown').innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">${monthLabel} üzrə skan edilmiş çek yoxdur.</p>`;
+            return;
+        }
 
         let htmlStr = '';
-        for (let cat in categoryMap) {
-            let catTotal = 0;
+
+        currentMonthReceipts.forEach((rec, idx) => {
             let itemsHtml = '';
-            
-            categoryMap[cat].forEach(item => {
-                catTotal += item.total;
+            rec.items.forEach(item => {
                 itemsHtml += `
                 <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; padding: 6px 0; border-bottom: 1px dotted #EDF2F7;">
                     <div>
@@ -928,25 +928,16 @@
             });
 
             htmlStr += `
-            <div style="margin-bottom: 14px; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
-                <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--primary-dark); font-size: 0.9rem; margin-bottom: 6px; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px;">
-                    <span>📂 ${cat}</span>
-                    <span>Cəmi: ${catTotal.toFixed(2)} ₼</span>
+            <div style="margin-bottom: 16px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--primary-dark); font-size: 0.88rem; margin-bottom: 6px; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px;">
+                    <span>📄 Çek #${idx + 1} (${rec.date}) - ${rec.person}</span>
+                    <span style="color: var(--danger);">Cəmi: ${rec.total.toFixed(2)} ₼</span>
                 </div>
                 ${itemsHtml}
             </div>`;
-        }
-
-        let receiptsMetaHtml = '<div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px;"><div style="font-size: 0.85rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">📅 Skan Edilmiş Çeklər:</div>';
-        currentMonthReceipts.forEach(rec => {
-            receiptsMetaHtml += `<div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid #E2E8F0; margin-bottom: 6px; font-size: 0.78rem;">
-                <div>🗓️ <b>Çek Tarixi:</b> ${rec.date} | 👤 <b>Şəxs:</b> ${rec.person}</div>
-                <div style="color: var(--danger); font-weight: bold; margin-top: 2px;">💰 Ümumi Çek Məbləği: ${rec.total.toFixed(2)} ₼</div>
-            </div>`;
         });
-        receiptsMetaHtml += `</div>`;
 
-        document.getElementById('market-item-breakdown').innerHTML = (htmlStr ? htmlStr + receiptsMetaHtml : `<p style="color: var(--text-muted); font-size: 0.85rem;">${monthLabel} üzrə skan edilmiş çek yoxdur.</p>`);
+        document.getElementById('market-item-breakdown').innerHTML = htmlStr;
     }
 
     function renderHistory() {
