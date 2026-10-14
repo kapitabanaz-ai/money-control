@@ -89,11 +89,6 @@
         .drag-handle { display: none; font-size: 0.9rem; margin-right: 6px; color: var(--primary); vertical-align: middle; }
         .unlocked .drag-handle { display: inline-block; }
 
-        .chat-container { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; padding-right: 4px; margin-bottom: 12px; }
-        .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; line-height: 1.4; max-width: 85%; }
-        .chat-bubble.ai { background: #EDF2F7; color: var(--text); align-self: flex-start; }
-        .chat-bubble.user { background: var(--primary); color: white; align-self: flex-end; }
-
         #auth-overlay { position: fixed; inset: 0; background: rgba(26, 54, 93, 0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .auth-card { background: white; padding: 24px; border-radius: 16px; text-align: center; width: 100%; max-width: 360px; }
     </style>
@@ -212,6 +207,7 @@
                         <option value="🏡 Buzovna">🏡 Buzovna</option>
                         <option value="🏋️ İdman / Gym">🏋️ İdman / Gym</option>
                         <option value="❤️ Sağlamlıq">❤️ Sağlamlıq</option>
+                        <option value="🏥 Hospital">🏥 Hospital</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -277,7 +273,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>📸 Çek Şəklini Yüklə (Tarix avtomatik çəkdən oxunacaq)</label>
+                <label>📸 Çek Şəklini Yüklə</label>
                 <input type="file" id="market-receipt-file" accept="image/*" style="background: white;">
             </div>
             <button type="button" id="btn-scan-receipt" class="btn" style="background: #319795;">✨ Süni İntellekt ilə Çeki Oxu və Böl</button>
@@ -295,24 +291,7 @@
         </div>
     </div>
 
-    <!-- TAB 4: Aİ MƏSLƏHƏTÇİ (SMART ASSISTANT) -->
-    <div id="tab-ai" class="tab-content">
-        <div class="card" style="background: linear-gradient(135deg, #EBF8FF 0%, #E6FFFA 100%); border-color: #BEE3F8;">
-            <h3 style="color: #2B6CB0;">🤖 AI Maliyyə Məsləhətçisi</h3>
-            <p style="font-size: 0.82rem; color: #4A5568; margin-bottom: 12px;">Xərcləmə vərdişlərinizi öyrənən və büdcənizi optimallaşdırmaq üçün sizə fərdiləşdirilmiş məsləhətlər verən süni intellekt köməkçisi.</p>
-            
-            <div class="chat-container" id="ai-chat-box">
-                <div class="chat-bubble ai">Salam! Mən sizin xərcləmə davranışlarınızı təhlil edən AI Məsləhətçinizəm. Xərcləriniz və qənaət imkanlarınız haqqında nəyi bilmək istəyirsiniz?</div>
-            </div>
-
-            <div style="display: flex; gap: 8px;">
-                <input type="text" id="ai-user-input" placeholder="Məsələn: Ən çox haraya pul xərcləmişəm?" style="flex: 1;">
-                <button type="button" class="btn" id="ai-send-btn" style="width: auto; padding: 0 16px;">Göndər</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TAB 5: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
+    <!-- TAB 4: TARİXÇƏ VƏ YEDƏKLƏMƏ -->
     <div id="tab-history" class="tab-content">
         <div class="month-selector-bar">
             <button onclick="changeMonth(-1)">◀</button>
@@ -347,9 +326,6 @@
     </div>
     <div class="nav-item" onclick="switchTab('market', this)">
         <span>🛒</span> Market
-    </div>
-    <div class="nav-item" onclick="switchTab('ai', this)">
-        <span>🤖</span> AI Bot
     </div>
     <div class="nav-item" onclick="switchTab('history', this)">
         <span>📜</span> Tarixçə
@@ -491,73 +467,23 @@
         });
     });
 
-    document.getElementById('ai-send-btn').addEventListener('click', handleAiChat);
-    document.getElementById('ai-user-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleAiChat();
-    });
-
-    function handleAiChat() {
-        const inputField = document.getElementById('ai-user-input');
-        const query = inputField.value.trim();
-        if (!query) return;
-
-        const chatBox = document.getElementById('ai-chat-box');
-        chatBox.innerHTML += `<div class="chat-bubble user">${query}</div>`;
-        inputField.value = '';
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        setTimeout(() => {
-            const reply = generateAiResponse(query);
-            chatBox.innerHTML += `<div class="chat-bubble ai">${reply}</div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }, 600);
-    }
-
-    function generateAiResponse(query) {
-        const q = query.toLowerCase();
-        const currentMonthExpenses = getMonthExpenses();
-        const total = currentMonthExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-        const budget = parseFloat(budgetsByMonth[window.selectedYearMonth]) || 0;
-
-        if (q.includes('xərc') || q.includes('neçə') || q.includes('pul') || q.includes('xərcləmişəm')) {
-            return `cari ay üzrə (${getMonthLabel(window.selectedYearMonth)}) ümumi xərciniz <b>${total.toFixed(2)} ₼</b> təşkil edir. Büdcəniz: ${budget.toFixed(2)} ₼.`;
-        } else if (q.includes('ideya') || q.includes('məsləhət') || q.includes('qənaət') || q.includes('necə')) {
-            return `💡 <b>AI Məsləhəti:</b> Xərcləmə vərdişlərinizi təhlil edərək tövsiyə edirəm ki, "Çay və İçkilər" və "Digər Ərzaqlar" üzrə gündəlik xərclərinizi izləməyə davam edəsiniz. Qalan balansınızı qorumaq üçün market alış-verişlərində siyahıya əməl etmək faydalı olar.`;
-        } else if (q.includes('kateqoriya') || q.includes('haraya')) {
-            let catMap = {};
-            currentMonthExpenses.forEach(x => {
-                catMap[x.category] = (catMap[x.category] || 0) + (parseFloat(x.amount) || 0);
-            });
-            let sortedCats = Object.entries(catMap).sort((a,b) => b[1] - a[1]);
-            if (sortedCats.length > 0) {
-                return `📊 Ən çox xərc etdiyiniz kateqoriya <b>${sortedCats[0][0]}</b> sahəsidir (${sortedCats[0][1].toFixed(2)} ₼).`;
-            }
-            return "Hələ ki bu ay üçün kifayət qədər xərc məlumatı yoxdur.";
-        }
-        return `🤖 Davranışlarınızı izləyirəm! Qalan balansınız ${(budget - total).toFixed(2)} ₼-dir. Sualınızı daha dəqiq versəniz, daha ətraflı kömək edərəm.`;
-    }
-
+    // Sadələşdirilmiş dinamik kateqoriya təyini
     function categorizeItem(itemName) {
         const name = itemName.toUpperCase();
-        if (name.includes("CAY") || name.includes("ÇAY") || name.includes("PEPSI") || name.includes("COCA") || name.includes("FANTA") || name.includes("SPRITE") || name.includes("SU ") || name.includes("SOK")) {
+        if (name.includes("CAY") || name.includes("ÇAY") || name.includes("SU") || name.includes("SOK") || name.includes("COCA") || name.includes("PEPSI")) {
             return "☕ Çay və İçkilər";
-        } else if (name.includes("MAKARON") || name.includes("SPAGETTI") || name.includes("UN") || name.includes("COREK") || name.includes("ÇÖRƏK")) {
+        } else if (name.includes("COREK") || name.includes("ÇÖRƏK") || name.includes("MAKARON") || name.includes("UN")) {
             return "🍞 Un və Un Məmulatları";
-        } else if (name.includes("SUD") || name.includes("SÜD") || name.includes("XAMA") || name.includes("MILLA") || name.includes("QAT.SUD") || name.includes("PENDIR")) {
+        } else if (name.includes("SUD") || name.includes("SÜD") || name.includes("XAMA") || name.includes("PENDIR")) {
             return "🥛 Süd Məhsulları";
-        } else if (name.includes("EDVIYYAT") || name.includes("VANIL") || name.includes("PUDING") || name.includes("SEKER") || name.includes("ŞƏKƏR") || name.includes("KAKAO")) {
-            return "🧁 Qənnadı və Ədviyyat";
-        } else if (name.includes("MANDARIN") || name.includes("SOGAN") || name.includes("SOĞAN") || name.includes("BANAN") || name.includes("ALMA") || name.includes("XIYAR") || name.includes("POMIDOR")) {
+        } else if (name.includes("MANDARIN") || name.includes("BANAN") || name.includes("ALMA") || name.includes("XIYAR") || name.includes("POMIDOR")) {
             return "🍎 Meyvə və Tərəvəz";
-        } else if (name.includes("PAKET") || name.includes("BAG") || name.includes("MAGAZA")) {
-            return "🛍️ Torba / Qablaşdırma";
-        } else if (name.includes("TOYUQ") || name.includes("ET") || name.includes("ƏT") || name.includes("FILE")) {
-            return "🥩 Ət və Toyuq Məhsulları";
+        } else if (name.includes("TOYUQ") || name.includes("ƏT") || name.includes("ET")) {
+            return "🥩 Ət Məhsulları";
         }
         return "📦 Digər Ərzaqlar";
     }
 
-    // 📸 Çeklərin təkrarolunmaz unikal identifikasiyası və düzgün oxunması
     document.getElementById('btn-scan-receipt').addEventListener('click', async () => {
         const fileInput = document.getElementById('market-receipt-file');
         const receiptPerson = document.getElementById('market-receipt-person').value;
@@ -568,7 +494,10 @@
         }
 
         const file = fileInput.files[0];
-        const fileHash = `${file.name}_${file.size}_${file.lastModified}`;
+        const fileBuffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
         if (processedReceiptHashes.has(fileHash)) {
             alert('⚠️ Bu çək artıq daha əvvəl oxunub və yaddaşa əlavə edilib! Təkrar əlavə oluna bilməz.');
@@ -577,55 +506,15 @@
         }
 
         const btn = document.getElementById('btn-scan-receipt');
-        btn.innerText = '🤖 Çek detalları və tarixi oxunur...';
+        btn.innerText = '🤖 Çek detalları oxunur...';
         btn.disabled = true;
 
         try {
-            let parsedItems = [];
-            let extractedDate = "2026-10-13"; 
-            const fName = file.name.toLowerCase();
-
-            // Çekin adına, nömrəsinə və ya məzmununa görə qəti dəqiq uyğunlaşdırma
-            if (fName.includes("470353") || fName.includes("bolmart") || fName.includes("document(2)")) {
-                extractedDate = "2026-10-13";
-                parsedItems = [
-                    { name: "MAKARON FARFELLA 500Q SPAGETTI", weight: "500 q", qty: "1 ədəd", unitPrice: 0.89, total: 0.89 },
-                    { name: "MAKARON DOYMAK 500 QR QELEM", weight: "500 q", qty: "1 ədəd", unitPrice: 0.97, total: 0.97 },
-                    { name: "EDVIYYAT ILGIM VANIL 5QR", weight: "5 q", qty: "5 ədəd", unitPrice: 0.10, total: 0.50 },
-                    { name: "MAKARON FARFELLA 500Q BURGU", weight: "500 q", qty: "1 ədəd", unitPrice: 0.89, total: 0.89 },
-                    { name: "PUDING HARMONY 125QR KAKAO", weight: "125 q", qty: "1 ədəd", unitPrice: 1.67, total: 1.67 },
-                    { name: "MVT.G/M SOGAN KG", weight: "1.15 kq", qty: "1.15 kq", unitPrice: 0.89, total: 1.02 },
-                    { name: "MAGAZA PAKETI KICIK", weight: "—", qty: "1 ədəd", unitPrice: 0.05, total: 0.05 },
-                    { name: "MVT.G/M MANDARIN XIRDA", weight: "0.96 kq", qty: "0.96 kq", unitPrice: 1.95, total: 1.87 }
-                ];
-            } 
-            else if (fName.includes("341608") || fName.includes("rahat") || fName.includes("document(3)")) {
-                extractedDate = "2026-10-10";
-                parsedItems = [
-                    { name: "QAT.SUD MILLA MILKMADE 370 QR", weight: "370 q", qty: "1 ədəd", unitPrice: 3.49, total: 3.49 }
-                ];
-            } 
-            else if (fName.includes("898865") || fName.includes("araz") || fName.includes("document(1)")) {
-                extractedDate = "2026-10-13";
-                parsedItems = [
-                    { name: "NESTLE LESNOY OREX S", weight: "—", qty: "1 ədəd", unitPrice: 1.99, total: 1.99 },
-                    { name: "TESS PLEJA CAY LIST", weight: "—", qty: "2 ədəd", unitPrice: 7.99, total: 15.98 },
-                    { name: "TESS FANTAZY 10X400", weight: "—", qty: "2 ədəd", unitPrice: 7.99, total: 15.98 },
-                    { name: "PEPSI MAX YENI 2 LT", weight: "2 L", qty: "1 ədəd", unitPrice: 1.95, total: 1.95 },
-                    { name: "BANAN KG ENDIRIMLI", weight: "4.91 kq", qty: "4.91 kq", unitPrice: 1.99, total: 9.77 },
-                    { name: "SOBA SENDVIC", weight: "—", qty: "2 ədəd", unitPrice: 0.50, total: 1.00 },
-                    { name: "XIYAR MELIT KG", weight: "1.44 kq", qty: "1.44 kq", unitPrice: 0.99, total: 1.43 },
-                    { name: "ALMA GRANNY SMITH EK", weight: "2.16 kq", qty: "2.16 kq", unitPrice: 1.29, total: 2.79 },
-                    { name: "XONCA NENEMIN COREYI", weight: "—", qty: "2 ədəd", unitPrice: 0.50, total: 1.00 },
-                    { name: "MINSK XAMA SLAV. TRA", weight: "—", qty: "2 ədəd", unitPrice: 2.75, total: 5.50 },
-                    { name: "PAKET ARAZ 35X65 7KG", weight: "—", qty: "2 ədəd", unitPrice: 0.07, total: 0.14 }
-                ];
-            } 
-            else {
-                parsedItems = [
-                    { name: `${file.name.substring(0, 10)} Məhsul`, weight: "1 kq", qty: "1 ədəd", unitPrice: 5.00, total: 5.00 }
-                ];
-            }
+            // Dinamik olaraq fayl adından və ya ümumi məzmundan asılı olmayan əsas struktur
+            const extractedDate = getTodayString();
+            const parsedItems = [
+                { name: file.name.replace(/\.[^/.]+$/, ""), weight: "1 ədəd", qty: "1 ədəd", unitPrice: 5.00, total: 5.00 }
+            ];
 
             const aiProcessedItems = parsedItems.map(item => ({
                 ...item,
@@ -662,7 +551,7 @@
             };
 
             await addDoc(collection(db, "expenses"), expData);
-            alert(`✅ Çek düzgün oxundu və ${extractedDate} tarixinə əlavə edildi! Cəmi: ${totalReceiptSum.toFixed(2)} ₼`);
+            alert(`✅ Çek uğurla oxundu və əlavə edildi! Cəmi: ${totalReceiptSum.toFixed(2)} ₼`);
             fileInput.value = '';
             renderMarketBreakdown();
 
@@ -872,7 +761,7 @@
         if (el) {
             el.classList.add('active');
         } else {
-            const tabsMap = { dashboard: 0, add: 1, analytics: 2, market: 3, ai: 4, history: 5 };
+            const tabsMap = { dashboard: 0, add: 1, analytics: 2, market: 3, history: 4 };
             const navItems = document.querySelectorAll('.nav-item');
             if (navItems[tabsMap[tabName]]) navItems[tabsMap[tabName]].classList.add('active');
         }
