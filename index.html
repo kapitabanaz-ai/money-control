@@ -204,6 +204,7 @@
                         <option value="🏠 Ev 19/49">🏠 Ev 19/47</option>
                         <option value="🏡 Buzovna">🏡 Buzovna</option>
                         <option value="🛒 Market">🛒 Market</option>
+                        <option value="🏥 Klinika">🏥 Klinika</option>
                         <option value="🏦 Bank">🏦 Bank</option>
                     </select>
                 </div>
@@ -292,6 +293,7 @@
                     <option value="🏡 Ümumi ailə">🏡 Ümumi ailə</option>
                     <option value="👨‍💼 Javid">👨‍💼 Javid</option>
                     <option value="👩‍💼 Turanə">👩‍💼 Turanə</option>
+                    <option value="🏥 Klinika">🏥 Klinika</option>
                 </select>
             </div>
             <div class="form-group">
@@ -485,9 +487,9 @@
     const normTxt = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[əƏ]/g, 'E').replace(/ı/g, 'I').toUpperCase();
 
     const CATEGORY_RULES = [
-        ['🏥 Klinika və Xidmət', /KLINIKA|CLINIC|XESTEXANA|HOSPITAL|BONA DEA|LABORATORIYA|MUAYENE|HIZMETI|KONSULTASIYA/],
-        ['💊 Dərmanlar', /GELMIZOL|MICROLAN|ENEMA|TABLET|KAPSUL|\d\s*MG\b|\bMG\b|SIROP|DAMCI|MERHEM|MALHAM|AMPULA|SPREY|SUPPOZITOR|PARASETAMOL|ASPIRIN|IBUPROFEN|NO-?SPA|ANALGIN|NUROFEN|PANADOL|ANTIBIOTIK|AMOKSI|LOPERAMID|SMEKTA/],
-        ['🌿 Vitamin və Əlavələr', /VITAMIN|OMEGA|KALSIUM|MAGNEZIUM|\bZINC\b|TIKVENNOE|BALIQ YAGI|PROBIOTIK/],
+        ['🏥 Klinika və Xidmət', /KLINIKA|CLINIC|XESTEXANA|HOSPITAL|BONA DEA|LABORATORIYA|MUAYENE|HIZMETI|KONSULTASIYA|UMUMI ODENIS/],
+        ['💊 Dərmanlar', /GELMIZOL|MICROLAN|ENEMA|TABLET|KAPSUL|\d\s*MG\b|\bMG\b|SIROP|DAMCI|MERHEM|MALHAM|AMPULA|SPREY|SUPPOZITOR|PARASETAMOL|ASPIRIN|IBUPROFEN|NO-?SPA|ANALGIN|NUROFEN|PANADOL|ANTIBIOTIK|AMOKSI|LOPERAMID|SMEKTA|PARAFERIN|SIAFEN|\d\s*MQ\b|TIKVENNOE/],
+        ['🌿 Vitamin və Əlavələr', /VITAMIN|OMEGA|KALSIUM|MAGNEZIUM|\bZINC\b|BALIQ YAGI|PROBIOTIK/],
         ['🩹 Tibbi ləvazimat', /SPRIS|SHPRIS|SPRITS|BINT|PAMBIQ|MASKA|ELDIVEN|PLASTIR|TERMOMETR|TONOMETR|SPIRT/],
         ['🥣 Mayonez', /MAYONEZ|MOYONEZ|SLOBODA/],
         ['📦 Qablaşdırma / Paket', /KLOK|ZEFERAN|LDPE|PAKET|QUTU|TORBA|TOR BASI|BAZARSTORE|\bBAG\b/],
@@ -498,9 +500,9 @@
         ['🚬 Tütün', /SIQARET|MARLBORO|PARLIAMENT|WINSTON|\bKENT\b|CAMEL|TUTUN|\bLD\b|\bROTHMANS/],
         ['🥛 Süd məhsulları', /\bSUD|\bSUT\b|SUTLU|XAMA|PENDIR|PANIR|YOQURT|QAYMAQ|KEFIR|AYRAN|KERE YAG|SMETANA|TVOROQ|DOVGA|KATIQ/],
         ['🥚 Yumurta', /YUMURTA/],
-        ['🥤 Su və İçkilər', /\bSU\b|SUYU|\bSOK\b|COCA|PEPSI|FANTA|SPRITE|LIMONAD|MINERAL|BORJOMI|BADAMLI|SIRAB|ENERJI|ENERGY|RED BULL|\bKOLA\b|PIVE|\bPIVA\b|SERAB|VODKA|KONYAK|SAMPAN|\bNEKTAR|MORS\b|KOMPOT|IC TEA|ICE TEA/],
+        ['🥤 Su və İçkilər', /\bSU\b|SUYU|\bSOK\b|COCA|PEPSI|\bFANTA\b|SPRITE|LIMONAD|MINERAL|BORJOMI|BADAMLI|SIRAB|ENERJI|ENERGY|RED BULL|\bKOLA\b|PIVE|\bPIVA\b|SERAB|VODKA|KONYAK|SAMPAN|\bNEKTAR|MORS\b|KOMPOT|IC TEA|ICE TEA/],
         ['🍬 Şirniyyat və Qəlyanaltı', /PUDING|PRYANIK|SIRNIYYAT|KONFET|CIPS|CHIPS|\bHALVA\b|PECENYE|KEKS|QURABIYYE|PAXLAVA|KRAKER|MARSHMALLOW|ZEFIR|\bBAL\b|\bTORT|DRAJE|LOLLIPOP|SUSKA|POPCORN|QARGIDALI/],
-        ['☕ Çay və Qəhvə', /\bCAY\b|COFFEE|KOFE|NESCAFE|KAKAO TOZ|KAKAO ICKI|NESQUIK|QAHVE|KAPUCINO|AKBAR|AHMAD|LIPTON|\bTEA\b|ALOKOZAY/],
+        ['☕ Çay və Qəhvə', /\bCAY\b|\bTESS\b|COFFEE|KOFE|NESCAFE|KAKAO TOZ|KAKAO ICKI|NESQUIK|QAHVE|KAPUCINO|AKBAR|AHMAD|LIPTON|\bTEA\b|ALOKOZAY/],
         ['🍫 Şokolad', /SOKOLAD|NESTLE|OREX|ROSHEN|WAFER|VAFLI|VAFLA|ALPEN|MILKA|KINDER|SNICKERS|TWIX|BOUNTY|\bMARS\b|NUTELLA|NUTELA|KITKAT|FERRERO|RAFFAELLO/],
         ['🥩 Ət və Quş əti', /TOYUQ|BROYLER|\bET\b|\bETI\b|\bDANA\b|QOYUN|KOLBASA|SOSISKA|SUCUK|FARS|BASTURMA|KABAB|CIGER|KOTLET|BUD\b|QANAD|ZIRVEL/],
         ['🐟 Balıq və Dəniz məhsulları', /BALIQ|SELEDKA|TUNEC|SKUMBRIYA|KREVET|ISTIRIDYE|KAVIAR|QIZILBALIQ|SOMON|KILKA|SARDIN|SPROT/],
@@ -524,7 +526,7 @@
 
     // Adında "PAKET" olsa belə bu qaydalar üstünlük təşkil edir (məs. MVT = meyvə-tərəvəz, çəkiyə satılan mal)
     const PRIORITY_RULES = [
-        ['🍎 Meyvə və Tərəvəz', /\bMVT\b/],
+        ['🍎 Meyvə və Tərəvəz', /\bMVT\b|KARTOF YUYULMUS|\bSETKA\b/],
         ['🥣 Mayonez', /MAYONEZ|MOYONEZ/]
     ];
 
@@ -539,11 +541,11 @@
         return isPharmacy(store) ? FALLBACK_PHARM : FALLBACK_FOOD;
     }
 
-    // Saxlanmış mal kateqoriyası köhnədirsə (artıq mövcud deyilsə) və ya "Digər"dirsə, yeni qaydalarla yenidən təyin edilir
+    // Əl ilə seçilməyibsə, kateqoriya həmişə ən yeni qaydalarla təyin olunur (köhnə çeklər də avtomatik yenilənir)
     function recat(it, store) {
         const c = it.category;
-        if (!c || !ALL_CATEGORIES.includes(c) || c === FALLBACK_FOOD || c === FALLBACK_PHARM) return categorizeItem(it.name, store);
-        return c;
+        if (it.manual === true && ALL_CATEGORIES.includes(c)) return c;
+        return categorizeItem(it.name, store);
     }
 
     function pickExpenseCategory(items, store) {
@@ -812,11 +814,13 @@
         if (!it) return;
         if (field === 'name') {
             it.name = value.trim();
+            it.manual = false;
             it.category = categorizeItem(it.name, pendingReceipts[rIdx].store);
             const sel = document.getElementById(`rv-cat-${rIdx}-${i}`);
             if (sel) sel.value = it.category;
         } else if (field === 'category') {
             it.category = value;
+            it.manual = true;
         } else {
             it[field] = toNumSafe(value);
             if (field === 'qty' || field === 'unitPrice') {
@@ -882,7 +886,8 @@
                             qty: it.qty,
                             unitPrice: it.unitPrice,
                             total: it.total,
-                            category: it.category
+                            category: it.category,
+                            manual: !!it.manual
                         }))
                     },
                     createdBy: currentUser ? currentUser.email : 'Naməlum',
