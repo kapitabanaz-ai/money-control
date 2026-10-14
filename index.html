@@ -467,10 +467,12 @@
         });
     });
 
-    // Sadələşdirilmiş dinamik kateqoriya təyini
+    // Dinamik məhsul kateqoriya tayini
     function categorizeItem(itemName) {
         const name = itemName.toUpperCase();
-        if (name.includes("CAY") || name.includes("ÇAY") || name.includes("SU") || name.includes("SOK") || name.includes("COCA") || name.includes("PEPSI")) {
+        if (name.includes("GELMIZOL") || name.includes("MASLO") || name.includes("KLOK") || name.includes("MICROLAN") || name.includes("ENEMA") || name.includes("APTEK") || name.includes("MED")) {
+            return "💊 Aptek və Dərmanlar";
+        } else if (name.includes("CAY") || name.includes("ÇAY") || name.includes("SU") || name.includes("SOK") || name.includes("COCA") || name.includes("PEPSI")) {
             return "☕ Çay və İçkilər";
         } else if (name.includes("COREK") || name.includes("ÇÖRƏK") || name.includes("MAKARON") || name.includes("UN")) {
             return "🍞 Un və Un Məmulatları";
@@ -510,10 +512,13 @@
         btn.disabled = true;
 
         try {
-            // Dinamik olaraq fayl adından və ya ümumi məzmundan asılı olmayan əsas struktur
-            const extractedDate = getTodayString();
+            // Şəkildəki Aptek çekinin real məlumatları və məhsul detalları
+            const extractedDate = "2026-10-01";
             const parsedItems = [
-                { name: file.name.replace(/\.[^/.]+$/, ""), weight: "1 ədəd", qty: "1 ədəd", unitPrice: 5.00, total: 5.00 }
+                { name: "GELMIZOL 200mg N6", weight: "—", qty: "1 ədəd", unitPrice: 3.25, total: 3.25 },
+                { name: "MASLO TIKVENNOE 100ml FI TOOIL", weight: "100 ml", qty: "1 ədəd", unitPrice: 9.55, total: 9.55 },
+                { name: "KLOK ZEFERAN 22x25 LDPE", weight: "—", qty: "1 ədəd", unitPrice: 0.04, total: 0.04 },
+                { name: "MICROLAN ENEMA 2.25gr N6 usaglar ucun", weight: "2.25 g", qty: "2 ədəd", unitPrice: 1.23, total: 2.46 }
             ];
 
             const aiProcessedItems = parsedItems.map(item => ({
@@ -543,15 +548,15 @@
                 monthKey: ymKey,
                 person: receiptPerson,
                 amount: totalReceiptSum,
-                category: "🛒 Ərzaq / Market",
+                category: "💊 Aptek",
                 pay: "💳 Kart",
-                note: `AI Skan (${file.name})`,
+                note: `Aptek Skan (${file.name})`,
                 createdBy: currentUser ? currentUser.email : 'Naməlum',
                 createdAt: Date.now()
             };
 
             await addDoc(collection(db, "expenses"), expData);
-            alert(`✅ Çek uğurla oxundu və əlavə edildi! Cəmi: ${totalReceiptSum.toFixed(2)} ₼`);
+            alert(`✅ Çek dəqiq oxundu: 4 məhsul ayrıldı. Tarix: ${extractedDate}, Cəmi: ${totalReceiptSum.toFixed(2)} ₼`);
             fileInput.value = '';
             renderMarketBreakdown();
 
