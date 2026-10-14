@@ -72,14 +72,12 @@
         .clickable-person-row { cursor: pointer; user-select: none; }
         .clickable-person-row:hover { background-color: rgba(43, 108, 176, 0.04); border-radius: 6px; }
         
-        /* Product Clickable Row & Modal Styles */
         .market-item-row { cursor: pointer; transition: background 0.15s; border-radius: 6px; padding: 4px 6px; }
         .market-item-row:hover { background: #EDF2F7; }
 
         #product-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
         .product-modal-card { background: white; padding: 20px; border-radius: 14px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
 
-        /* Drag & Drop Styles */
         .history-day-card { margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); transition: transform 0.1s, box-shadow 0.1s; position: relative; }
         .unlocked .history-day-card { border: 2px dashed #BEE3F8; }
         
@@ -87,11 +85,6 @@
         .history-item.item-draggable-enabled .drag-handle { cursor: grab; }
         .history-item.item-draggable-enabled .drag-handle:active { cursor: grabbing; }
         .history-item.dragging-item { opacity: 0.4; background: #EBF8FF; }
-
-        .history-day-card.day-draggable-enabled { }
-        .history-day-card.day-draggable-enabled > div:first-child { cursor: grab; }
-        .history-day-card.day-draggable-enabled > div:first-child:active { cursor: grabbing; }
-        .history-day-card.dragging-day { opacity: 0.4; background: #EDF2F7; }
 
         .drag-handle { display: none; font-size: 0.9rem; margin-right: 6px; color: var(--primary); vertical-align: middle; }
         .unlocked .drag-handle { display: inline-block; }
@@ -486,7 +479,7 @@
         });
     });
 
-    // ===== ÇEK OXUMA: kateqoriyalar, parser =====
+    // ===== ÇEK OXUMA: təmizləmə filterləri və parser =====
     const normTxt = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[əƏ]/g, 'E').replace(/ı/g, 'I').toUpperCase();
 
     const CATEGORY_RULES = [
@@ -527,6 +520,15 @@
         return (total > 0 && pharm / total >= 0.5) ? '💊 Aptek' : '🛒 Ərzaq / Market';
     }
 
+    // Lazımsız sistem sətirlərini və xidməti simvolları yoxlayan funksiya
+    function isIgnorableLine(line) {
+        const upper = normTxt(line);
+        if (/^(OOO|RR|KK|OK)+$/i.test(upper)) return true;
+        if (/ODANIS|NAGDS|NAGD|BONUS|AVANS|NISYA|NOVBA|NKA|ZAVOD|FISKAL|MQ-NIN|QEYDIYYAT|EDV|GERI|QAYTARILMASi|HAYATA|KECIRILMAVIB|FAIZ|DV\s*:/i.test(upper)) return true;
+        if (/^[\W_]+$/.test(line)) return true; // Yalnız simvoldan ibarət sətirlər
+        return false;
+    }
+
     function parseReceiptText(text) {
         const toNum = s => parseFloat(String(s).replace(',', '.'));
         const lines = String(text).split(/\r?\n/).map(l => l.trim()).filter(Boolean);
@@ -559,10 +561,13 @@
         const reUnit = /^(.*?)\s*\(([^)]{2,6})\)\s+(\d+(?:[.,]\d+)?)\s+(\d+[.,]\d{2,3})\s+(\d+[.,]\d{2})\s*$/;
         const reBare = /^(.*?)\s+(\d+(?:[.,]\d+)?)\s+(\d+[.,]\d{2,3})\s+(\d+[.,]\d{2})\s*$/;
         let last = null;
+
         for (let i = start; i < end; i++) {
             const l = lines[i];
-            if (/^[*'"“]/.test(l) || /DV\s*:?\s*\d+\s*%/i.test(l)) continue;
+            if (isIgnorableLine(l)) { last = null; continue; }
+            if (/^[*'"“]/.test(l)) continue;
             if (!/[A-Za-z]/.test(l)) continue;
+
             let mm = l.match(reUnit);
             let item = null;
             if (mm) {
@@ -574,13 +579,15 @@
                 }
             }
             if (item) {
+                if (isIgnorableLine(item.name)) continue;
                 item.unit = /ad[ae]d|ed[ae]d/i.test(normTxt(item.unit)) || /AD.?D/.test(normTxt(item.unit)) ? 'ədəd' : item.unit;
                 out.items.push(item);
                 last = item;
-            } else if (last) {
+            } else if (last && !isIgnorableLine(l)) {
                 last.name += ' ' + l;
             }
         }
+        
         out.items.forEach(it => {
             it.name = it.name.replace(/\(\s*(EDED|ƏDƏD|aded|adad)\s*\)/gi, '').replace(/\s{2,}/g, ' ').trim();
             it.category = categorizeItem(it.name, out.store);
@@ -843,7 +850,6 @@
         }
     };
 
-    // Məhsul Detalları Modalını Açmaq
     window.showProductDetails = function(name, unit, qty, unitPrice, total, category, store, date) {
         const modalContent = document.getElementById('modal-product-content');
         modalContent.innerHTML = `
