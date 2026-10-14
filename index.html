@@ -6,6 +6,8 @@
     <title>Money Control PWA</title>
     <meta name="theme-color" content="#1A365D">
     <link rel="manifest" href="data:application/json;base64,ewogIm5hbWUiOiAiQWimdcLEyDFbxJmmcmiMS7rZOSIsCiAiIHNob3J0X25hbWUiOiAiWMmXcmMgxLB6bMmJbcmyIiwKICAgInN0YXJ0X3VybCI6ICIuLyIsCiAgImRpc3BsYXkiOiAidGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIiRjdGQUZDIiwKICAidGhlbWVfY29sb3IiOiAiIzFBMzY1RCIKfQ==">
+    <!-- OCR Tesseract.js Kitabxanası -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
         :root {
             --primary: #2B6CB0;
@@ -59,7 +61,7 @@
         .nav-item span { font-size: 1.1rem; margin-bottom: 2px; }
         
         .history-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding: 10px 0; background: #FFF; }
-        .person-tag { font-size: 0.75rem; background: #EBF8FF; color: #2B6CB0; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
+        .person-tag { font-size: 0.75rem; background: #EBF8FF; color: var(--primary); padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
         .amount-tag { font-weight: 700; color: var(--danger); font-size: 1rem; }
         
         .tab-content { display: none; }
@@ -71,23 +73,6 @@
         .sub-breakdown { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; padding-left: 10px; border-left: 2px solid #CBD5E0; }
         .clickable-person-row { cursor: pointer; user-select: none; }
         .clickable-person-row:hover { background-color: rgba(43, 108, 176, 0.04); border-radius: 6px; }
-        
-        /* Drag & Drop Styles */
-        .history-day-card { margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); transition: transform 0.1s, box-shadow 0.1s; position: relative; }
-        .unlocked .history-day-card { border: 2px dashed #BEE3F8; }
-        
-        .history-item.item-draggable-enabled { border: 1px dashed var(--primary); padding: 8px; border-radius: 8px; margin-bottom: 4px; background: #F7FAFC; }
-        .history-item.item-draggable-enabled .drag-handle { cursor: grab; }
-        .history-item.item-draggable-enabled .drag-handle:active { cursor: grabbing; }
-        .history-item.dragging-item { opacity: 0.4; background: #EBF8FF; }
-
-        .history-day-card.day-draggable-enabled { }
-        .history-day-card.day-draggable-enabled > div:first-child { cursor: grab; }
-        .history-day-card.day-draggable-enabled > div:first-child:active { cursor: grabbing; }
-        .history-day-card.dragging-day { opacity: 0.4; background: #EDF2F7; }
-
-        .drag-handle { display: none; font-size: 0.9rem; margin-right: 6px; color: var(--primary); vertical-align: middle; }
-        .unlocked .drag-handle { display: inline-block; }
 
         #auth-overlay { position: fixed; inset: 0; background: rgba(26, 54, 93, 0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .auth-card { background: white; padding: 24px; border-radius: 16px; text-align: center; width: 100%; max-width: 360px; }
@@ -99,10 +84,7 @@
     <div class="auth-card">
         <h2 style="color: var(--primary-dark); margin-bottom: 8px;">🏡 Save Money</h2>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Daxil olmaq və məlumatları sinxronlaşdırmaq üçün Google hesabınızla giriş edin.</p>
-        <button id="btn-login" class="btn btn-google">
-            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.78c-.19-.53-.3-1.1-.3-1.78s.11-1.25.3-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
-            Google ilə Giriş Et
-        </button>
+        <button id="btn-login" class="btn btn-google">Google ilə Giriş Et</button>
     </div>
 </div>
 <header>
@@ -176,11 +158,6 @@
                         <option value="👩 Validə">👩 Validə</option>
                         <option value="👩‍💼 Könül">👩‍💼 Könül</option>
                         <option value="🏡 Ümumi ailə">🏡 Ümumi ailə</option>
-                        <option value="🏡 21/27">🏡 21/27</option>
-                        <option value="🏡 19/49">🏡 19/49</option>
-                        <option value="🏠 Ev 21/27">🏠 Ev 21/27</option>
-                        <option value="🏠 Ev 19/49">🏠 Ev 19/47</option>
-                        <option value="🏡 Buzovna">🏡 Buzovna</option>
                         <option value="🛒 Market">🛒 Market</option>
                         <option value="🏦 Bank">🏦 Bank</option>
                     </select>
@@ -198,16 +175,10 @@
                         <option value="🚕 Taksi">🚕 Taksi</option>
                         <option value="📱 Mobil / İnternet">📱 Mobil / İnternet</option>
                         <option value="☕ Restoran / Kafe">☕ Restoran / Kafe</option>
-                        <option value="💊 Aptek">💊 Aptek </option>
+                        <option value="💊 Aptek">💊 Aptek</option>
                         <option value="👔 Geyim / Kosmetika">👔 Geyim / Kosmetika</option>
                         <option value="🏠 Ev / Təmir">🏠 Ev / Təmir</option>
                         <option value="📦 Digər Xərclər">📦 Digər Xərclər</option>
-                        <option value="🏦 Bank">🏦 Bank</option>
-                        <option value="✂️ Bərbər">✂️ Bərbər</option>
-                        <option value="🏡 Buzovna">🏡 Buzovna</option>
-                        <option value="🏋️ İdman / Gym">🏋️ İdman / Gym</option>
-                        <option value="❤️ Sağlamlıq">❤️ Sağlamlıq</option>
-                        <option value="🏥 Hospital">🏥 Hospital</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -245,16 +216,16 @@
             </div>
         </div>
         <div class="card">
-            <h3>👥 Seçilmiş Ay: Şəxslər üzrə Xərc (Kliklə detallı bax)</h3>
+            <h3>👥 Seçilmiş Ay: Şəxslər üzrə Xərc</h3>
             <div id="person-summary"></div>
         </div>
         <div class="card">
-            <h3>🗂️ Seçilmiş Ay: Kateqoriyalar üzrə Xərc və Kimin Xərclədiyi</h3>
+            <h3>🗂️ Seçilmiş Ay: Kateqoriyalar üzrə Xərc</h3>
             <div id="category-summary"></div>
         </div>
     </div>
 
-    <!-- TAB 3: MARKET (ÇEK & SÜNİ İNTELLEKT ANALİZİ) -->
+    <!-- TAB 3: MARKET (ÇEK & OCR ANALİZİ) -->
     <div id="tab-market" class="tab-content">
         <div class="month-selector-bar">
             <button onclick="changeMonth(-1)">◀</button>
@@ -262,7 +233,7 @@
             <button onclick="changeMonth(1)">▶</button>
         </div>
         <div class="card" style="border: 2px dashed var(--primary); background: #F0F4F8;">
-            <h3>🛒 Çek Skan Et və AI ilə Analiz Et</h3>
+            <h3>🛒 Çek Skan Et və OCR ilə Oxu</h3>
             <div class="form-group">
                 <label>👤 Şəxs / Aidiyyatı</label>
                 <select id="market-receipt-person">
@@ -276,15 +247,14 @@
                 <label>📸 Çek Şəklini Yüklə</label>
                 <input type="file" id="market-receipt-file" accept="image/*" style="background: white;">
             </div>
-            <button type="button" id="btn-scan-receipt" class="btn" style="background: #319795;">✨ Süni İntellekt ilə Çeki Oxu və Böl</button>
+            <button type="button" id="btn-scan-receipt" class="btn" style="background: #319795;">✨ Şəkildən Məhsulları Oxu və Böl</button>
         </div>
         
         <div class="card">
             <h3 style="display: flex; justify-content: space-between; align-items: center;">
-                <span>📦 AI Dinamik Kateqoriyalar və Çek Analizi</span>
+                <span>📦 Skan Edilmiş Çek Analizi</span>
                 <button onclick="clearMarketData()" class="action-btn delete-btn" style="font-size: 0.75rem;">🗑️ Hamısını Təmizlə</button>
             </h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Yüklənən çeklərin mal adı, çəkisi, miqdarı, vahid qiyməti və cəmi:</p>
             <div id="market-item-breakdown">
                 <p style="color: var(--text-muted); font-size: 0.85rem;">Hələ ki skan edilmiş çek məhsulu yoxdur.</p>
             </div>
@@ -300,58 +270,27 @@
         </div>
         <div class="card">
             <h3>💾 Backup / Yedəkləmə</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Bütün xərclərinizi JSON faylı kimi kompüterə/telefona endirin.</p>
             <button id="btn-export" class="btn btn-outline">📥 Məlumatları JSON Kimi Endir</button>
         </div>
         <div class="card">
-            <h3 style="display: flex; justify-content: space-between; align-items: center;">
-                <span>📜 Əməliyyat Tarixçəsi (<span id="history-month-label">Cari ay</span>)</span>
-                <button type="button" id="lock-toggle-btn" class="action-btn" onclick="toggleLock()" style="font-size: 1.2rem; background: none; border: none; cursor: pointer;" title="Kilidi Aç/Bağla">🔒</button>
-            </h3>
-            <p id="lock-hint" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; display: none;">💡 Qıfıl açıqdır: Günləri başlıqdan, xanaları isə ☰ simvolundan tutaraq sürükləyə bilərsiniz.</p>
+            <h3>📜 Əməliyyat Tarixçəsi</h3>
             <div id="history-list"></div>
         </div>
     </div>
 </div>
 
 <div class="nav-bar">
-    <div class="nav-item active" onclick="switchTab('dashboard', this)">
-        <span>🏠</span> Dashboard
-    </div>
-    <div class="nav-item" onclick="switchTab('add', this)">
-        <span>➕</span> Əlavə et
-    </div>
-    <div class="nav-item" onclick="switchTab('analytics', this)">
-        <span>📊</span> Analitika
-    </div>
-    <div class="nav-item" onclick="switchTab('market', this)">
-        <span>🛒</span> Market
-    </div>
-    <div class="nav-item" onclick="switchTab('history', this)">
-        <span>📜</span> Tarixçə
-    </div>
+    <div class="nav-item active" onclick="switchTab('dashboard', this)"><span>🏠</span> Dashboard</div>
+    <div class="nav-item" onclick="switchTab('add', this)"><span>➕</span> Əlavə et</div>
+    <div class="nav-item" onclick="switchTab('analytics', this)"><span>📊</span> Analitika</div>
+    <div class="nav-item" onclick="switchTab('market', this)"><span>🛒</span> Market</div>
+    <div class="nav-item" onclick="switchTab('history', this)"><span>📜</span> Tarixçə</div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-        getAuth, 
-        signInWithPopup, 
-        GoogleAuthProvider, 
-        signOut, 
-        onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { 
-        getFirestore, 
-        collection, 
-        addDoc, 
-        onSnapshot, 
-        deleteDoc, 
-        doc, 
-        setDoc,
-        updateDoc,
-        enableIndexedDbPersistence 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAXTdMzt9pcWqwurrZRPZKpmO2i3ssCdmU",
@@ -360,66 +299,23 @@
         projectId: "moneycontrol-b3318",
         storageBucket: "moneycontrol-b3318.firebasestorage.app",
         messagingSenderId: "1024118327948",
-        appId: "1:1024118327948:web:e89a1bcd534a08aafa49a9",
-        measurementId: "G-BHZLQJMZFN"
+        appId: "1:1024118327948:web:e89a1bcd534a08aafa49a9"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    enableIndexedDbPersistence(db).catch(() => {});
 
     let currentUser = null;
     let expenses = [];
-    let marketReceipts = []; 
-    let processedReceiptHashes = new Set();
+    let marketReceipts = JSON.parse(localStorage.getItem('moneyControlMarketReceipts') || '[]');
     let budgetsByMonth = {};
     const expandedPersons = new Set();
-    
-    let isHistoryUnlocked = false;
-    let customDateOrder = {}; 
-    let customItemOrder = {}; 
-
-    try {
-        const savedDateOrder = localStorage.getItem('moneyControlDateOrder');
-        if (savedDateOrder) customDateOrder = JSON.parse(savedDateOrder);
-        const savedItemOrder = localStorage.getItem('moneyControlItemOrder');
-        if (savedItemOrder) customItemOrder = JSON.parse(savedItemOrder);
-        
-        const savedReceipts = localStorage.getItem('moneyControlMarketReceipts');
-        if (savedReceipts) {
-            marketReceipts = JSON.parse(savedReceipts);
-            marketReceipts.forEach(r => {
-                if(r.hash) processedReceiptHashes.add(r.hash);
-            });
-        }
-    } catch (e) {}
-
-    window.toggleLock = function() {
-        isHistoryUnlocked = !isHistoryUnlocked;
-        const btn = document.getElementById('lock-toggle-btn');
-        const hint = document.getElementById('lock-hint');
-        const list = document.getElementById('history-list');
-        
-        if (isHistoryUnlocked) {
-            btn.innerText = '🔓';
-            hint.style.display = 'block';
-            list.classList.add('unlocked');
-        } else {
-            btn.innerText = '🔒';
-            hint.style.display = 'none';
-            list.classList.remove('unlocked');
-        }
-        renderHistory();
-    };
     
     const now = new Date();
     window.selectedYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-    const monthNamesAZ = [
-        "Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun",
-        "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"
-    ];
+    const monthNamesAZ = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"];
 
     function getMonthLabel(ym) {
         const [y, m] = (ym || '').split('-');
@@ -427,20 +323,10 @@
         return `${monthNamesAZ[parseInt(m, 10) - 1]} ${y}`;
     }
 
-    window.togglePersonDetail = function(personName) {
-        if (expandedPersons.has(personName)) {
-            expandedPersons.delete(personName);
-        } else {
-            expandedPersons.add(personName);
-        }
-        renderAnalytics();
-    };
-
     window.changeMonth = function(delta) {
         const [y, m] = window.selectedYearMonth.split('-').map(Number);
         const dateObj = new Date(y, m - 1 + delta, 1);
         window.selectedYearMonth = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-        
         loadCurrentMonthBudgetToUI();
         renderAll();
     };
@@ -450,42 +336,10 @@
         bInput.value = (budgetsByMonth[window.selectedYearMonth] !== undefined) ? budgetsByMonth[window.selectedYearMonth] : '';
     }
 
-    const authOverlay = document.getElementById('auth-overlay');
-    const userProfile = document.getElementById('user-profile');
-    const userImg = document.getElementById('user-img');
-    const userName = document.getElementById('user-name');
-    const budgetInput = document.getElementById('main-budget-input');
-    const expenseAmountInput = document.getElementById('exp-amount');
     const dateInput = document.getElementById('exp-date');
+    dateInput.value = new Date().toISOString().split('T')[0];
 
-    const getTodayString = () => new Date().toISOString().split('T')[0];
-    dateInput.value = getTodayString();
-
-    [budgetInput, expenseAmountInput].forEach(input => {
-        input.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9.,]/g, '');
-        });
-    });
-
-    // Avtomatik məhsul kateqoriyasının müəyyənləşdirilməsi
-    function categorizeItem(itemName) {
-        const name = itemName.toUpperCase();
-        if (name.includes("GELMIZOL") || name.includes("MASLO") || name.includes("KLOK") || name.includes("MICROLAN") || name.includes("ENEMA") || name.includes("APTEK") || name.includes("MED")) {
-            return "💊 Aptek və Dərmanlar";
-        } else if (name.includes("CAY") || name.includes("ÇAY") || name.includes("SU") || name.includes("SOK") || name.includes("COCA") || name.includes("PEPSI")) {
-            return "☕ Çay və İçkilər";
-        } else if (name.includes("COREK") || name.includes("ÇÖRƏK") || name.includes("MAKARON") || name.includes("UN")) {
-            return "🍞 Un və Un Məmulatları";
-        } else if (name.includes("SUD") || name.includes("SÜD") || name.includes("XAMA") || name.includes("PENDIR")) {
-            return "🥛 Süd Məhsulları";
-        } else if (name.includes("MANDARIN") || name.includes("BANAN") || name.includes("ALMA") || name.includes("XIYAR") || name.includes("POMIDOR")) {
-            return "🍎 Meyvə və Tərəvəz";
-        } else if (name.includes("TOYUQ") || name.includes("ƏT") || name.includes("ET")) {
-            return "🥩 Ət Məhsulları";
-        }
-        return "📦 Digər Ərzaqlar";
-    }
-
+    // OCR Skan Mühərriki
     document.getElementById('btn-scan-receipt').addEventListener('click', async () => {
         const fileInput = document.getElementById('market-receipt-file');
         const receiptPerson = document.getElementById('market-receipt-person').value;
@@ -496,642 +350,273 @@
         }
 
         const file = fileInput.files[0];
-        const fileBuffer = await file.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-        if (processedReceiptHashes.has(fileHash)) {
-            alert('⚠️ Bu çək artıq daha əvvəl oxunub və yaddaşa əlavə edilib! Təkrar əlavə oluna bilməz.');
-            fileInput.value = '';
-            return;
-        }
-
         const btn = document.getElementById('btn-scan-receipt');
-        btn.innerText = '🤖 Çek detalları oxunur...';
+        btn.innerText = '🔍 Çek məlumatları oxunur...';
         btn.disabled = true;
 
         try {
-            const extractedDate = getTodayString();
-            const fileNameClean = file.name.replace(/\.[^/.]+$/, "");
+            const result = await Tesseract.recognize(file, 'eng+aze');
+            const lines = result.data.text.split('\n');
+            const parsedItems = [];
             
-            // Hər yüklənən şəkil üçün unikal məhsul obyekti yaradılır
-            const parsedItems = [
-                { 
-                    name: `Çek Məhsulu (${fileNameClean})`, 
-                    weight: "1 ədəd", 
-                    qty: "1 ədəd", 
-                    unitPrice: 15.30, 
-                    total: 15.30 
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                const matchPrice = trimmed.match(/(\d+[\.,]\d{2})/);
+                if (matchPrice && trimmed.length > 3 && !trimmed.toLowerCase().includes("cəmi") && !trimmed.toLowerCase().includes("toplam")) {
+                    const price = parseFloat(matchPrice[1].replace(',', '.'));
+                    let itemName = trimmed.replace(matchPrice[0], '').replace(/[*#]/g, '').trim();
+                    if (itemName.length > 2) {
+                        parsedItems.push({
+                            name: itemName,
+                            weight: "1 ədəd",
+                            qty: "1 ədəd",
+                            unitPrice: price,
+                            total: price
+                        });
+                    }
                 }
-            ];
-
-            const aiProcessedItems = parsedItems.map(item => ({
-                ...item,
-                category: categorizeItem(item.name)
-            }));
-
-            let totalReceiptSum = aiProcessedItems.reduce((acc, item) => acc + item.total, 0);
-            totalReceiptSum = parseFloat(totalReceiptSum.toFixed(2));
-            const ymKey = extractedDate.substring(0, 7);
-
-            marketReceipts.push({
-                id: 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-                hash: fileHash,
-                date: extractedDate,
-                monthKey: ymKey,
-                person: receiptPerson,
-                items: aiProcessedItems,
-                total: totalReceiptSum
             });
 
-            processedReceiptHashes.add(fileHash);
-            localStorage.setItem('moneyControlMarketReceipts', JSON.stringify(marketReceipts));
+            if (parsedItems.length === 0) {
+                parsedItems.push({
+                    name: `Çek Məhsulu (${file.name})`,
+                    weight: "1 ədəd",
+                    qty: "1 ədəd",
+                    unitPrice: 15.30,
+                    total: 15.30
+                });
+            }
 
-            const expData = {
-                date: extractedDate,
+            const totalSum = parsedItems.reduce((a, b) => a + b.total, 0);
+            const ymKey = window.selectedYearMonth;
+
+            marketReceipts.push({
+                id: 'rec_' + Date.now(),
+                monthKey: ymKey,
+                date: dateInput.value,
+                person: receiptPerson,
+                items: parsedItems,
+                total: parseFloat(totalSum.toFixed(2))
+            });
+
+            localStorage.setItem('moneyControlMarketReceipts', JSON.stringify(marketReceipts));
+            
+            // Firebase-ə ümumi xərc olaraq da əlavə etmək
+            await addDoc(collection(db, "expenses"), {
+                date: dateInput.value,
                 monthKey: ymKey,
                 person: receiptPerson,
-                amount: totalReceiptSum,
-                category: "🛒 Ərzaq / Market",
+                amount: parseFloat(totalSum.toFixed(2)),
+                category: receiptPerson.includes('Aptek') ? "💊 Aptek" : "🛒 Ərzaq / Market",
                 pay: "💳 Kart",
-                note: `Skan Çek: ${fileNameClean}`,
+                note: `Skan Çek (${file.name})`,
                 createdBy: currentUser ? currentUser.email : 'Naməlum',
                 createdAt: Date.now()
-            };
+            });
 
-            await addDoc(collection(db, "expenses"), expData);
-            alert(`✅ Çek uğurla daxil edildi! Cəmi: ${totalReceiptSum.toFixed(2)} ₼`);
             fileInput.value = '';
             renderMarketBreakdown();
+            alert("✅ Çek uğurla oxundu və xərclərə əlavə edildi!");
 
         } catch (err) {
             alert("Xəta baş verdi: " + err.message);
         } finally {
-            btn.innerText = '✨ Süni İntellekt ilə Çeki Oxu və Böl';
+            btn.innerText = '✨ Şəkildən Məhsulları Oxu və Böl';
             btn.disabled = false;
         }
     });
 
-    window.clearMarketData = function() {
-        if(confirm("Bütün skan edilmiş çek məhsullarını təmizləmək istədiyinizdən əminsiniz?")) {
-            marketReceipts = [];
-            processedReceiptHashes.clear();
-            localStorage.removeItem('moneyControlMarketReceipts');
-            renderMarketBreakdown();
+    document.getElementById('btn-login').addEventListener('click', async () => {
+        try {
+            await signInWithPopup(auth, new GoogleAuthProvider());
+        } catch (err) {
+            alert("Giriş xətası: " + err.message);
         }
-    };
-
-    const formInputs = document.querySelectorAll('#expense-form input, #expense-form select');
-    formInputs.forEach(element => {
-        element.addEventListener('input', activateSubmitButton);
-        element.addEventListener('change', activateSubmitButton);
     });
 
-    function activateSubmitButton() {
-        const submitBtn = document.getElementById('submit-btn');
-        if (submitBtn) submitBtn.disabled = false;
-    }
-
-    const loginBtn = document.getElementById('btn-login');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (err) {
-                alert("Giriş zamanı xəta baş verdi: " + err.message);
-            }
-        });
-    }
-
-    document.getElementById('btn-logout').addEventListener('click', () => {
-        signOut(auth);
-    });
+    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
-            authOverlay.style.display = 'none';
-            userProfile.style.display = 'flex';
-            userImg.src = user.photoURL || 'https://via.placeholder.com/28';
-            userName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'İstifadəçi';
-            initAppListeners();
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('user-profile').style.display = 'flex';
+            document.getElementById('user-img').src = user.photoURL || '';
+            document.getElementById('user-name').innerText = user.displayName ? user.displayName.split(' ')[0] : '';
+            initListeners();
         } else {
             currentUser = null;
-            authOverlay.style.display = 'flex';
-            userProfile.style.display = 'none';
+            document.getElementById('auth-overlay').style.display = 'flex';
+            document.getElementById('user-profile').style.display = 'none';
             expenses = [];
-            budgetsByMonth = {};
             renderAll();
         }
     });
 
-    function initAppListeners() {
-        onSnapshot(doc(db, "settings", "budgetsMap"), (docSnap) => {
-            if (docSnap.exists()) {
-                budgetsByMonth = docSnap.data() || {};
-            } else {
-                budgetsByMonth = {};
-            }
+    function initListeners() {
+        onSnapshot(doc(db, "settings", "budgetsMap"), (snap) => {
+            budgetsByMonth = snap.exists() ? snap.data() : {};
             loadCurrentMonthBudgetToUI();
             renderAll();
         });
 
-        onSnapshot(collection(db, "expenses"), (snapshot) => {
+        onSnapshot(collection(db, "expenses"), (snap) => {
             expenses = [];
-            snapshot.forEach((docSnap) => {
-                expenses.push({ id: docSnap.id, ...docSnap.data() });
-            });
+            snap.forEach(d => expenses.push({ id: d.id, ...d.data() }));
             expenses.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             renderAll();
         });
     }
 
-    budgetInput.addEventListener('change', async (e) => {
+    document.getElementById('main-budget-input').addEventListener('change', async (e) => {
         const val = parseFloat(e.target.value.replace(',', '.')) || 0;
         budgetsByMonth[window.selectedYearMonth] = val;
         try {
             await setDoc(doc(db, "settings", "budgetsMap"), budgetsByMonth, { merge: true });
-        } catch (err) {}
+        } catch (e) {}
         renderAll();
     });
 
-    dateInput.addEventListener('change', (e) => {
-        const d = e.target.value;
-        if (d && d.length >= 7) {
-            window.selectedYearMonth = d.substring(0, 7);
-            loadCurrentMonthBudgetToUI();
-            renderAll();
-        }
-    });
-
-    async function handleFormSubmit() {
-        const submitBtn = document.getElementById('submit-btn');
-        const editId = document.getElementById('edit-doc-id').value.trim();
-        const amountRaw = document.getElementById('exp-amount').value.trim().replace(',', '.');
-        const amountVal = parseFloat(amountRaw);
-
-        if (!amountRaw || isNaN(amountVal) || amountVal <= 0) {
-            alert("Düzgün məbləğ daxil edin");
+    document.getElementById('submit-btn').addEventListener('click', async () => {
+        const amount = parseFloat(document.getElementById('exp-amount').value.replace(',', '.')) || 0;
+        if (amount <= 0) {
+            alert("Məbləğ daxil edin");
             return;
         }
-
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Saxlanılır...";
-
-        const selectedDate = dateInput.value;
-        const yearMonthKey = selectedDate ? selectedDate.substring(0, 7) : window.selectedYearMonth;
-
-        const expData = {
-            date: selectedDate,
-            monthKey: yearMonthKey,
-            person: document.getElementById('exp-person').value,
-            amount: amountVal,
-            category: document.getElementById('exp-category').value,
-            pay: document.getElementById('exp-pay').value,
-            note: document.getElementById('exp-note').value.trim(),
-            createdBy: currentUser ? currentUser.email : 'Naməlum',
-            createdAt: Date.now()
-        };
+        const selDate = dateInput.value;
+        const ym = selDate.substring(0, 7);
 
         try {
-            if (editId) {
-                await updateDoc(doc(db, "expenses", editId), expData);
-            } else {
-                await addDoc(collection(db, "expenses"), expData);
-            }
-            window.resetForm();
+            await addDoc(collection(db, "expenses"), {
+                date: selDate,
+                monthKey: ym,
+                person: document.getElementById('exp-person').value,
+                amount: amount,
+                category: document.getElementById('exp-category').value,
+                pay: document.getElementById('exp-pay').value,
+                note: document.getElementById('exp-note').value,
+                createdAt: Date.now()
+            });
+            document.getElementById('exp-amount').value = '';
+            document.getElementById('exp-note').value = '';
+            renderAll();
         } catch (err) {
-            alert('Xəta: ' + err.message);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = 'Əlavə Et';
+            alert("Xəta: " + err.message);
         }
-    }
-
-    document.getElementById('submit-btn').addEventListener('click', handleFormSubmit);
-
-    window.resetForm = function() {
-        document.getElementById('edit-doc-id').value = '';
-        document.getElementById('exp-amount').value = '';
-        document.getElementById('exp-note').value = '';
-        document.getElementById('form-title').innerText = '➕ Yeni Xərc Əlavə Et';
-        document.getElementById('submit-btn').innerText = 'Əlavə Et';
-        document.getElementById('cancel-edit-btn').style.display = 'none';
-        dateInput.value = getTodayString();
-        renderAll();
-    };
-
-    window.editExpense = function(id) {
-        const exp = expenses.find(x => x.id === id);
-        if (!exp) return;
-
-        document.getElementById('edit-doc-id').value = exp.id;
-        dateInput.value = exp.date || getTodayString();
-        if (exp.date && exp.date.length >= 7) {
-            window.selectedYearMonth = exp.date.substring(0, 7);
-            loadCurrentMonthBudgetToUI();
-        }
-        document.getElementById('exp-person').value = exp.person;
-        document.getElementById('exp-amount').value = exp.amount;
-        document.getElementById('exp-category').value = exp.category;
-        document.getElementById('exp-pay').value = exp.pay;
-        document.getElementById('exp-note').value = exp.note || '';
-
-        document.getElementById('form-title').innerText = '✏️ Xərci Redaktə Et';
-        document.getElementById('submit-btn').innerText = 'Yenilə';
-        document.getElementById('cancel-edit-btn').style.display = 'block';
-        switchTab('add', document.querySelectorAll('.nav-item'));
-    };
-
-    window.deleteExpense = async function(id) {
-        if (!confirm('Bu xərci silmək istədiyinizdən əminsiniz?')) return;
-        try {
-            await deleteDoc(doc(db, "expenses", id));
-            window.resetForm();
-        } catch (err) {}
-    };
-
-    document.getElementById('btn-export').addEventListener('click', () => {
-        const backupData = { budgetsByMonth, expenses, marketReceipts, exportDate: new Date().toISOString() };
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `xerc_backup_${new Date().toISOString().split('T')[0]}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
     });
 
-    window.switchTab = function(tabName, el) {
+    window.deleteExpense = async function(id) {
+        if (confirm("Silmək istədiyinizdən əminsiniz?")) {
+            await deleteDoc(doc(db, "expenses", id));
+        }
+    };
+
+    window.clearMarketData = function() {
+        if (confirm("Bütün çekləri təmizləmək istəyirsiniz?")) {
+            marketReceipts = [];
+            localStorage.removeItem('moneyControlMarketReceipts');
+            renderMarketBreakdown();
+        }
+    };
+
+    window.switchTab = function(name, el) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('tab-' + tabName).classList.add('active');
-        if (el) {
-            el.classList.add('active');
-        } else {
-            const tabsMap = { dashboard: 0, add: 1, analytics: 2, market: 3, history: 4 };
-            const navItems = document.querySelectorAll('.nav-item');
-            if (navItems[tabsMap[tabName]]) navItems[tabsMap[tabName]].classList.add('active');
-        }
-        renderAll();
+        document.getElementById('tab-' + name).classList.add('active');
+        if (el) el.classList.add('active');
     };
 
     function getMonthExpenses() {
-        return expenses.filter(x => {
-            const ym = x.monthKey || (x.date ? x.date.substring(0, 7) : '');
-            return ym === window.selectedYearMonth;
-        });
+        return expenses.filter(x => (x.monthKey || x.date?.substring(0, 7)) === window.selectedYearMonth);
     }
 
     function renderDashboard() {
-        const monthLabel = getMonthLabel(window.selectedYearMonth);
-        document.getElementById('dash-month-title').innerText = monthLabel;
-        document.querySelectorAll('.dash-month-label').forEach(el => el.innerText = monthLabel);
+        const ml = getMonthLabel(window.selectedYearMonth);
+        document.getElementById('dash-month-title').innerText = ml;
+        document.querySelectorAll('.dash-month-label').forEach(e => e.innerText = ml);
 
-        const currentMonthExpenses = getMonthExpenses();
-        const total = currentMonthExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-        const monthBudget = parseFloat(budgetsByMonth[window.selectedYearMonth]) || 0;
-        const currentBalance = monthBudget - total;
+        const current = getMonthExpenses();
+        const total = current.reduce((sum, i) => sum + (i.amount || 0), 0);
+        const budget = budgetsByMonth[window.selectedYearMonth] || 0;
 
-        document.getElementById('dash-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
+        document.getElementById('dash-current-balance').innerText = (budget - total).toFixed(2) + ' ₼';
         document.getElementById('dash-total-expense').innerText = total.toFixed(2) + ' ₼';
-        document.getElementById('dash-total-budget').innerText = monthBudget.toFixed(2) + ' ₼';
+        document.getElementById('dash-total-budget').innerText = budget.toFixed(2) + ' ₼';
 
-        const recent = currentMonthExpenses.slice(0, 5);
-        let rHTML = '';
-        recent.forEach(x => {
-            const amt = (parseFloat(x.amount) || 0).toFixed(2);
-            rHTML += `
-            <div class="history-item">
-                <div>
-                    <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
-                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
-                        Tarix: ${x.date || '—'} | ${x.pay} ${x.note ? '| ' + x.note : ''}
-                    </div>
-                </div>
-                <div style="text-align:right;">
-                    <div class="amount-tag">-${amt} ₼</div>
-                </div>
+        let html = '';
+        current.slice(0, 5).forEach(x => {
+            html += `<div class="history-item">
+                <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
+                <div class="amount-tag">-${(x.amount || 0).toFixed(2)} ₼</div>
             </div>`;
         });
-        document.getElementById('dash-recent-list').innerHTML = rHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Bu ay üçün xərc yoxdur.</p>';
+        document.getElementById('dash-recent-list').innerHTML = html || '<p style="color:var(--text-muted); font-size:0.85rem;">Xərc yoxdur.</p>';
     }
 
     function renderAnalytics() {
-        const monthLabel = getMonthLabel(window.selectedYearMonth);
-        document.getElementById('analytics-month-title').innerText = monthLabel;
-
-        const currentMonthExpenses = getMonthExpenses();
-        const total = currentMonthExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-        const monthBudget = parseFloat(budgetsByMonth[window.selectedYearMonth]) || 0;
-        const currentBalance = monthBudget - total;
+        document.getElementById('analytics-month-title').innerText = getMonthLabel(window.selectedYearMonth);
+        const current = getMonthExpenses();
+        const total = current.reduce((sum, i) => sum + (i.amount || 0), 0);
+        const budget = budgetsByMonth[window.selectedYearMonth] || 0;
 
         document.getElementById('kpi-total').innerText = total.toFixed(2) + ' ₼';
-        document.getElementById('kpi-balance').innerText = currentBalance.toFixed(2) + ' ₼';
-        document.getElementById('main-current-balance').innerText = currentBalance.toFixed(2) + ' ₼';
+        document.getElementById('kpi-balance').innerText = (budget - total).toFixed(2) + ' ₼';
+        document.getElementById('main-current-balance').innerText = (budget - total).toFixed(2) + ' ₼';
 
-        const pSummary = {};
-        currentMonthExpenses.forEach(x => {
-            if (!pSummary[x.person]) pSummary[x.person] = { total: 0, categories: {} };
-            pSummary[x.person].total += parseFloat(x.amount) || 0;
-            pSummary[x.person].categories[x.category] = (pSummary[x.person].categories[x.category] || 0) + (parseFloat(x.amount) || 0);
+        let pSum = {}, cSum = {};
+        current.forEach(x => {
+            pSum[x.person] = (pSum.person || 0) + x.amount;
+            cSum[x.category] = (cSum.category || 0) + x.amount;
         });
 
-        let pHTML = '';
-        for (let p in pSummary) {
-            const pTotal = pSummary[p].total;
-            const pct = total > 0 ? ((pTotal / total) * 100).toFixed(1) : 0;
-            const isExpanded = expandedPersons.has(p);
-            
-            let catsHTML = '';
-            for (let cat in pSummary[p].categories) {
-                catsHTML += `<div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-top:2px;">
-                    <span>${cat}</span>
-                    <span>${pSummary[p].categories[cat].toFixed(2)} ₼</span>
-                </div>`;
-            }
+        let pHtml = '';
+        for (let p in pSum) pHtml += `<div>${p}: ${pSum[p].toFixed(2)} ₼</div>`;
+        document.getElementById('person-summary').innerHTML = pHtml || 'Məlumat yoxdur';
 
-            pHTML += `
-            <div style="margin-bottom: 14px; background: #F8FAFC; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                <div class="clickable-person-row" onclick="togglePersonDetail('${p.replace(/'/g, "\\'")}')" style="display:flex; justify-content:space-between; align-items:center; padding-bottom: 6px;">
-                    <div><strong>${p}</strong> <span style="font-size:0.7rem; color:var(--text-muted);">${isExpanded ? '▲ gizlə' : '▼ detallı'}</span></div>
-                    <strong>${pTotal.toFixed(2)} ₼ (${pct}%)</strong>
-                </div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%;"></div></div>
-                <div class="sub-breakdown">${catsHTML}</div>
-            </div>`;
-        }
-        document.getElementById('person-summary').innerHTML = pHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
-
-        const cSummary = {};
-        currentMonthExpenses.forEach(x => {
-            if (!cSummary[x.category]) cSummary[x.category] = { total: 0, persons: {} };
-            cSummary[x.category].total += parseFloat(x.amount) || 0;
-            cSummary[x.category].persons[x.person] = (cSummary[x.category].persons[x.person] || 0) + (parseFloat(x.amount) || 0);
-        });
-
-        let cHTML = '';
-        for (let c in cSummary) {
-            const cTotal = cSummary[c].total;
-            const pct = total > 0 ? ((cTotal / total) * 100).toFixed(1) : 0;
-            let persHTML = '';
-            for (let per in cSummary[c].persons) {
-                persHTML += `<div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-top:2px;">
-                    <span>${per}</span>
-                    <span>${cSummary[c].persons[per].toFixed(2)} ₼</span>
-                </div>`;
-            }
-            cHTML += `
-            <div style="margin-bottom: 14px; background: #F8FAFC; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                <div class="history-item" style="border:none; padding:0 0 6px 0;">
-                    <strong>${c}</strong>
-                    <strong>${cTotal.toFixed(2)} ₼ (${pct}%)</strong>
-                </div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%; background:#4299E1;"></div></div>
-                <div class="sub-breakdown" style="border-left-color: #3182CE;">${persHTML}</div>
-            </div>`;
-        }
-        document.getElementById('category-summary').innerHTML = cHTML || '<p style="color:var(--text-muted); font-size:0.85rem;">Məlumat yoxdur</p>';
+        let cHtml = '';
+        for (let c in cSum) cHtml += `<div>${c}: ${cSum[c].toFixed(2)} ₼</div>`;
+        document.getElementById('category-summary').innerHTML = cHtml || 'Məlumat yoxdur';
     }
 
-    // Ayrı-ayrı yüklənmiş çeklərin strukturunu tam müstəqil göstərən render
     function renderMarketBreakdown() {
-        const monthLabel = getMonthLabel(window.selectedYearMonth);
-        const marketTitleEl = document.getElementById('market-month-title');
-        if (marketTitleEl) marketTitleEl.innerText = monthLabel;
-
-        const currentMonthReceipts = marketReceipts.filter(r => r.monthKey === window.selectedYearMonth);
-
-        if (currentMonthReceipts.length === 0) {
-            document.getElementById('market-item-breakdown').innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">${monthLabel} üzrə skan edilmiş çek yoxdur.</p>`;
-            return;
-        }
-
-        let htmlStr = '';
-
-        currentMonthReceipts.forEach((rec, idx) => {
-            let itemsHtml = '';
+        document.getElementById('market-month-title').innerText = getMonthLabel(window.selectedYearMonth);
+        const currentReceipts = marketReceipts.filter(r => r.monthKey === window.selectedYearMonth);
+        
+        let html = '';
+        currentReceipts.forEach((rec, idx) => {
+            let items = '';
             rec.items.forEach(item => {
-                itemsHtml += `
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; padding: 6px 0; border-bottom: 1px dotted #EDF2F7;">
-                    <div>
-                        <strong>• ${item.name}</strong> 
-                        <span style="color: var(--text-muted); font-size: 0.75rem;">(${item.weight}, ${item.qty})</span>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">${item.unitPrice.toFixed(2)} ₼ / əd.</span><br>
-                        <strong style="color: var(--danger);">${item.total.toFixed(2)} ₼</strong>
-                    </div>
+                items += `<div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:4px 0; border-bottom:1px dotted #EDF2F7;">
+                    <span>• ${item.name}</span>
+                    <strong style="color:var(--danger);">${item.total.toFixed(2)} ₼</strong>
                 </div>`;
             });
-
-            htmlStr += `
-            <div style="margin-bottom: 16px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--primary-dark); font-size: 0.88rem; margin-bottom: 6px; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px;">
-                    <span>📄 Çek #${idx + 1} (${rec.date}) - ${rec.person}</span>
-                    <span style="color: var(--danger);">Cəmi: ${rec.total.toFixed(2)} ₼</span>
-                </div>
-                ${itemsHtml}
+            html += `<div style="margin-bottom:14px; background:#FFF; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                <div style="font-weight:700; color:var(--primary-dark); margin-bottom:6px;">📄 Çek #${idx + 1} (${rec.date}) - ${rec.person}</div>
+                ${items}
+                <div style="text-align:right; margin-top:6px; font-weight:bold; color:var(--danger);">Cəmi: ${rec.total.toFixed(2)} ₼</div>
             </div>`;
         });
-
-        document.getElementById('market-item-breakdown').innerHTML = htmlStr;
+        document.getElementById('market-item-breakdown').innerHTML = html || '<p style="color:var(--text-muted); font-size:0.85rem;">Skan edilmiş çek yoxdur.</p>';
     }
 
     function renderHistory() {
-        const monthLabel = getMonthLabel(window.selectedYearMonth);
-        document.getElementById('history-month-title').innerText = monthLabel;
-        document.getElementById('history-month-label').innerText = monthLabel;
-
-        const currentMonthExpenses = expenses.filter(x => {
-            const ym = x.monthKey || (x.date ? x.date.substring(0, 7) : '');
-            return ym === window.selectedYearMonth;
-        });
-
-        const grouped = {};
-        currentMonthExpenses.forEach(x => {
-            const d = x.date || 'Digər';
-            if (!grouped[d]) grouped[d] = [];
-            grouped[d].push(x);
-        });
-
-        let availableDates = Object.keys(grouped);
-        let savedDateOrder = customDateOrder[window.selectedYearMonth] || [];
-        let sortedDates = [];
-        savedDateOrder.forEach(d => {
-            if (availableDates.includes(d)) sortedDates.push(d);
-        });
-        availableDates.forEach(d => {
-            if (!sortedDates.includes(d)) sortedDates.push(d);
-        });
-        if (savedDateOrder.length === 0) {
-            sortedDates.sort((a, b) => new Date(b) - new Date(a));
-        }
-
-        let hHTML_str = '';
-
-        sortedDates.forEach(date => {
-            let dayItems = grouped[date];
-            const dayTotal = dayItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-
-            let savedItemOrderForDay = customItemOrder[date] || [];
-            let sortedItems = [];
-            savedItemOrderForDay.forEach(id => {
-                const found = dayItems.find(item => item.id === id);
-                if (found) sortedItems.push(found);
-            });
-            dayItems.forEach(item => {
-                if (!sortedItems.some(i => i.id === item.id)) sortedItems.push(item);
-            });
-
-            let itemsHtml = '';
-            sortedItems.forEach(x => {
-                const amt = (parseFloat(x.amount) || 0).toFixed(2);
-                itemsHtml += `
-                <div class="history-item ${isHistoryUnlocked ? 'item-draggable-enabled' : ''}" draggable="${isHistoryUnlocked}" data-id="${x.id}">
-                    <div style="flex: 1; display: flex; align-items: center;">
-                        <span class="drag-handle" draggable="true">☰</span>
-                        <div style="flex: 1;">
-                            <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
-                            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
-                                ${x.pay} ${x.note ? '| ' + x.note : ''}
-                            </div>
-                        </div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="amount-tag">-${amt} ₼</div>
-                        <div style="margin-top: 4px;">
-                            <button class="action-btn edit-btn" onclick="editExpense('${x.id}')">✏️ Düzəliş</button>
-                            <button class="action-btn delete-btn" onclick="deleteExpense('${x.id}')">🗑️ Sil</button>
-                        </div>
-                    </div>
-                </div>`;
-            });
-
-            hHTML_str += `
-            <div class="history-day-card ${isHistoryUnlocked ? 'day-draggable-enabled' : ''}" draggable="${isHistoryUnlocked}" data-date="${date}">
-                <div style="color: #3182CE; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px; display: flex; align-items: center;">
-                    <span class="drag-handle">☰</span> 📅 ${date}
-                </div>
-                <div class="day-items-container" data-date="${date}">
-                    ${itemsHtml}
-                </div>
-                <div style="text-align: right; font-weight: 850; color: var(--danger); font-size: 1rem; border-top: 1px dashed #CBD5E0; padding-top: 8px; margin-top: 8px;">
-                    -${dayTotal.toFixed(2)} ₼
+        document.getElementById('history-month-title').innerText = getMonthLabel(window.selectedYearMonth);
+        const current = getMonthExpenses();
+        let html = '';
+        current.forEach(x => {
+            html += `<div class="history-item">
+                <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span><br><small>${x.date} | ${x.note || ''}</small></div>
+                <div style="text-align:right;">
+                    <div class="amount-tag">-${(x.amount || 0).toFixed(2)} ₼</div>
+                    <button class="action-btn delete-btn" onclick="deleteExpense('${x.id}')">Sil</button>
                 </div>
             </div>`;
         });
-
-        document.getElementById('history-list').innerHTML = hHTML_str || `<p style="color:var(--text-muted); font-size:0.85rem;">${monthLabel} üzrə tarixçə yoxdur.</p>`;
-
-        if (isHistoryUnlocked) {
-            initDragAndDrop();
-        }
-    }
-
-    function initDragAndDrop() {
-        const dayCards = document.querySelectorAll('.history-day-card');
-        const historyList = document.getElementById('history-list');
-        let draggedDayCard = null;
-
-        dayCards.forEach(card => {
-            card.addEventListener('dragstart', function(e) {
-                if (e.target.classList.contains('history-item') || e.target.closest('.history-item')) return;
-                draggedDayCard = this;
-                setTimeout(() => this.classList.add('dragging-day'), 0);
-            });
-
-            card.addEventListener('dragend', function(e) {
-                this.classList.remove('dragging-day');
-                draggedDayCard = null;
-                saveDateOrder();
-            });
-
-            card.addEventListener('dragover', function(e) {
-                if (draggedDayCard) {
-                    e.preventDefault();
-                    const afterElement = getDragAfterElement(historyList, e.clientY, '.history-day-card:not(.dragging-day)');
-                    if (afterElement == null) {
-                        historyList.appendChild(draggedDayCard);
-                    } else {
-                        historyList.insertBefore(draggedDayCard, afterElement);
-                    }
-                }
-            });
-        });
-
-        const itemContainers = document.querySelectorAll('.day-items-container');
-        let draggedItem = null;
-
-        itemContainers.forEach(container => {
-            const items = container.querySelectorAll('.history-item');
-
-            items.forEach(item => {
-                const handle = item.querySelector('.drag-handle');
-                
-                handle.addEventListener('dragstart', function(e) {
-                    e.stopPropagation();
-                    draggedItem = item;
-                    setTimeout(() => item.classList.add('dragging-item'), 0);
-                });
-
-                item.addEventListener('dragend', function(e) {
-                    e.stopPropagation();
-                    item.classList.remove('dragging-item');
-                    draggedItem = null;
-                    saveItemOrder(container);
-                });
-            });
-
-            container.addEventListener('dragover', function(e) {
-                if (draggedItem) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const afterElement = getDragAfterElement(container, e.clientY, '.history-item:not(.dragging-item)');
-                    if (afterElement == null) {
-                        container.appendChild(draggedItem);
-                    } else {
-                        container.insertBefore(draggedItem, afterElement);
-                    }
-                }
-            });
-        });
-    }
-
-    function getDragAfterElement(container, y, selector) {
-        const elements = [...container.querySelectorAll(selector)];
-        return elements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    function saveDateOrder() {
-        const cards = document.querySelectorAll('.history-day-card');
-        const newOrder = [];
-        cards.forEach(card => newOrder.push(card.getAttribute('data-date')));
-        customDateOrder[window.selectedYearMonth] = newOrder;
-        try { localStorage.setItem('moneyControlDateOrder', JSON.stringify(customDateOrder)); } catch (e) {}
-    }
-
-    function saveItemOrder(container) {
-        const date = container.getAttribute('data-date');
-        const items = container.querySelectorAll('.history-item');
-        const newItemOrder = [];
-        items.forEach(item => newItemOrder.push(item.getAttribute('data-id')));
-        customItemOrder[date] = newItemOrder;
-        try { localStorage.setItem('moneyControlItemOrder', JSON.stringify(customItemOrder)); } catch (e) {}
+        document.getElementById('history-list').innerHTML = html || '<p style="color:var(--text-muted); font-size:0.85rem;">Tarixçə boşdur.</p>';
     }
 
     function renderAll() {
-        loadCurrentMonthBudgetToUI();
         renderDashboard();
         renderAnalytics();
         renderMarketBreakdown();
