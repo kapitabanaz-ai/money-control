@@ -68,10 +68,17 @@
         .edit-btn { color: #3182CE; }
         .delete-btn { color: var(--danger); }
         
-        .sub-breakdown { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; padding-left: 10px; border-left: 2px solid #CBD5E0; }
+        .sub-breakdown { font-size: 0.80rem; color: var(--text-muted); margin-top: 4px; padding-left: 10px; border-left: 2px solid #CBD5E0; }
         .clickable-person-row { cursor: pointer; user-select: none; }
         .clickable-person-row:hover { background-color: rgba(43, 108, 176, 0.04); border-radius: 6px; }
         
+        /* Product Clickable Row & Modal Styles */
+        .market-item-row { cursor: pointer; transition: background 0.15s; border-radius: 6px; padding: 4px 6px; }
+        .market-item-row:hover { background: #EDF2F7; }
+
+        #product-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .product-modal-card { background: white; padding: 20px; border-radius: 14px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+
         /* Drag & Drop Styles */
         .history-day-card { margin-bottom: 20px; background: #FFF; padding: 12px; border-radius: 10px; border: 1px solid var(--border); transition: transform 0.1s, box-shadow 0.1s; position: relative; }
         .unlocked .history-day-card { border: 2px dashed #BEE3F8; }
@@ -88,7 +95,6 @@
 
         .drag-handle { display: none; font-size: 0.9rem; margin-right: 6px; color: var(--primary); vertical-align: middle; }
         .unlocked .drag-handle { display: inline-block; }
-
 
         .rv-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 10px; background: #FFF; }
         .rv-item input, .rv-item select { padding: 9px; font-size: 0.88rem; }
@@ -112,6 +118,19 @@
         </button>
     </div>
 </div>
+
+<!-- PRODUCT DETAIL MODAL -->
+<div id="product-modal" onclick="closeProductModal()">
+    <div class="product-modal-card" onclick="event.stopPropagation()">
+        <h3 style="margin-bottom: 12px; color: var(--primary-dark); border-bottom: 1px solid var(--border); padding-bottom: 6px; display: flex; justify-content: space-between;">
+            <span>🏷️ Məhsul Detalları</span>
+            <button onclick="closeProductModal()" class="action-btn" style="font-size: 1rem;">✕</button>
+        </h3>
+        <div id="modal-product-content" style="font-size: 0.9rem; line-height: 1.6;"></div>
+        <button class="btn" style="margin-top: 16px; padding: 10px;" onclick="closeProductModal()">Bağla</button>
+    </div>
+</div>
+
 <header>
     <span>🏡 Xərc İzləmə</span>
     <div class="user-profile" id="user-profile" style="display:none;">
@@ -269,7 +288,7 @@
             <button onclick="changeMonth(1)">▶</button>
         </div>
         <div class="card" style="border: 2px dashed var(--primary); background: #F0F4F8;">
-            <h3>🛒 Çek Skan Et</h3>
+            <h3>🛒 Toplu Çek Skan Et</h3>
             <div class="form-group">
                 <label>👤 Şəxs / Aidiyyatı</label>
                 <select id="market-receipt-person">
@@ -280,10 +299,10 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>📸 Çek Şəklini Yüklə</label>
-                <input type="file" id="market-receipt-file" accept="image/*" style="background: white;">
+                <label>📸 Çek Şəkillərini Seç (Birdən çox seçə bilərsiniz)</label>
+                <input type="file" id="market-receipt-file" accept="image/*" multiple style="background: white;">
             </div>
-            <button type="button" id="btn-scan-receipt" class="btn" style="background: #319795;">📖 Çeki Oxu</button>
+            <button type="button" id="btn-scan-receipt" class="btn" style="background: #319795;">📖 Çekləri Oxu və Yoxla</button>
         </div>
         
         <div class="card" id="receipt-review" style="display:none; border: 2px solid #319795;"></div>
@@ -293,7 +312,7 @@
                 <span>🧾 Çeklərin Tərkibi və Kateqoriyalar</span>
                 <button onclick="clearMarketData()" class="action-btn delete-btn" style="font-size: 0.72rem;">🗑️ Ayın siyahısını sil</button>
             </h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Hər çekin malı, miqdarı, qiyməti və cəmi kateqoriyalara bölünmüş şəkildə:</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Məhsulların üzərinə klikləməklə tam çəkisini, miqdarını və digər detallarını görə bilərsiniz:</p>
             <div id="market-item-breakdown">
                 <p style="color: var(--text-muted); font-size: 0.85rem;">Hələ ki skan edilmiş çek yoxdur.</p>
             </div>
@@ -570,8 +589,8 @@
         return out;
     }
 
-    // ===== ÇEK SKAN: OCR + yoxlama ekranı =====
-    let pendingReceipt = null;
+    // ===== ÇEK SKAN: Toplu OCR + yoxlama ekranı =====
+    let pendingReceipts = []; 
     const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const fmt = n => (parseFloat(n) || 0).toFixed(2);
     const fmtQty = q => { const n = parseFloat(q) || 0; return Number.isInteger(n) ? String(n) : String(parseFloat(n.toFixed(3))); };
@@ -616,61 +635,61 @@
         const fileInput = document.getElementById('market-receipt-file');
         const btn = document.getElementById('btn-scan-receipt');
         if (!fileInput.files || fileInput.files.length === 0) {
-            alert('Zəhmət olmasa çek şəklini yükləyin.');
+            alert('Zəhmət olmasa ən azı bir çek şəkli seçin.');
             return;
         }
-        const file = fileInput.files[0];
+        const files = Array.from(fileInput.files);
         const originalLabel = btn.innerText;
         btn.disabled = true;
 
+        pendingReceipts = [];
+
         try {
-            const fileBuffer = await file.arrayBuffer();
-            const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
-            const fileHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-            if (findDuplicate(fileHash, '')) {
-                alert('⚠️ Bu çek artıq əlavə edilib. Təkrar əlavə oluna bilməz.');
-                fileInput.value = '';
-                return;
-            }
-
-            btn.innerText = '⏳ OCR yüklənir...';
             await loadTesseract();
-            const canvas = await prepareImage(file);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                btn.innerText = `⏳ Çek ${i+1}/${files.length} oxunur...`;
 
-            const worker = await Tesseract.createWorker('eng', 1, {
-                logger: m => {
-                    if (m.status === 'recognizing text') btn.innerText = `🤖 Çek oxunur... ${Math.round(m.progress * 100)}%`;
+                const fileBuffer = await file.arrayBuffer();
+                const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
+                const fileHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                if (findDuplicate(fileHash, '')) continue;
+
+                const canvas = await prepareImage(file);
+                const worker = await Tesseract.createWorker('eng', 1);
+                await worker.setParameters({ tessedit_pageseg_mode: Tesseract.PSM.SINGLE_COLUMN, preserve_interword_spaces: '1' });
+                const res = await worker.recognize(canvas);
+                await worker.terminate();
+
+                const parsed = parseReceiptText(res.data.text || '');
+                if (findDuplicate('', parsed.fiscalId)) continue;
+
+                const rec = {
+                    hash: fileHash,
+                    fiscalId: parsed.fiscalId,
+                    receiptNo: parsed.receiptNo,
+                    store: parsed.store,
+                    time: parsed.time,
+                    date: parsed.date || getTodayString(),
+                    dateFound: !!parsed.date,
+                    total: parsed.total,
+                    pay: parsed.pay || '💳 Kart',
+                    items: parsed.items,
+                    person: document.getElementById('market-receipt-person').value
+                };
+                rec.expCategory = pickExpenseCategory(rec.items, rec.store);
+                if (rec.items.length === 0) {
+                    rec.items.push({ name: '', unit: 'ədəd', qty: 1, unitPrice: 0, total: 0, category: isPharmacy(parsed.store) ? FALLBACK_PHARM : FALLBACK_FOOD });
                 }
-            });
-            await worker.setParameters({ tessedit_pageseg_mode: Tesseract.PSM.SINGLE_COLUMN, preserve_interword_spaces: '1' });
-            const res = await worker.recognize(canvas);
-            await worker.terminate();
+                pendingReceipts.push(rec);
+            }
 
-            const parsed = parseReceiptText(res.data.text || '');
-            if (findDuplicate('', parsed.fiscalId)) {
-                alert('⚠️ Bu çek (Fiskal ID eyni) artıq əlavə edilib.');
-                fileInput.value = '';
+            if (pendingReceipts.length === 0) {
+                alert('Seçilmiş çeklərin hamısı artıq mövcuddur və ya oxuna bilmədi.');
                 return;
             }
 
-            pendingReceipt = {
-                hash: fileHash,
-                fiscalId: parsed.fiscalId,
-                receiptNo: parsed.receiptNo,
-                store: parsed.store,
-                time: parsed.time,
-                date: parsed.date || getTodayString(),
-                dateFound: !!parsed.date,
-                total: parsed.total,
-                pay: parsed.pay || '💳 Kart',
-                items: parsed.items,
-                person: document.getElementById('market-receipt-person').value
-            };
-            pendingReceipt.expCategory = pickExpenseCategory(pendingReceipt.items, pendingReceipt.store);
-            if (pendingReceipt.items.length === 0) {
-                pendingReceipt.items.push({ name: '', unit: 'ədəd', qty: 1, unitPrice: 0, total: 0, category: isPharmacy(parsed.store) ? FALLBACK_PHARM : FALLBACK_FOOD });
-            }
-            renderReview();
+            renderReviewList();
             document.getElementById('receipt-review').scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (err) {
             alert('Xəta baş verdi: ' + err.message);
@@ -680,71 +699,60 @@
         }
     });
 
-    function renderReview() {
+    function renderReviewList() {
         const box = document.getElementById('receipt-review');
-        if (!pendingReceipt) { box.style.display = 'none'; box.innerHTML = ''; return; }
-        const r = pendingReceipt;
-        const expCatOpts = [...document.querySelectorAll('#exp-category option')].map(o => `<option value="${esc(o.value)}" ${o.value === r.expCategory ? 'selected' : ''}>${esc(o.value)}</option>`).join('');
-        const payOpts = [...document.querySelectorAll('#exp-pay option')].map(o => `<option value="${esc(o.value)}" ${o.value === r.pay ? 'selected' : ''}>${esc(o.value)}</option>`).join('');
-        const catOpts = sel => ALL_CATEGORIES.map(c => `<option value="${esc(c)}" ${c === sel ? 'selected' : ''}>${esc(c)}</option>`).join('');
+        if (pendingReceipts.length === 0) { box.style.display = 'none'; box.innerHTML = ''; return; }
 
-        const rows = r.items.map((it, i) => `
-            <div class="rv-item">
-                <input type="text" value="${esc(it.name)}" placeholder="Məhsulun adı" onchange="rvSet(${i},'name',this.value)">
-                <div class="rv-grid">
-                    <div><label>Say</label><input type="text" inputmode="decimal" value="${fmtQty(it.qty)}" onchange="rvSet(${i},'qty',this.value)"></div>
-                    <div><label>Qiymət</label><input type="text" inputmode="decimal" value="${fmt(it.unitPrice)}" onchange="rvSet(${i},'unitPrice',this.value)"></div>
-                    <div><label>Cəmi</label><input type="text" inputmode="decimal" id="rv-total-${i}" value="${fmt(it.total)}" onchange="rvSet(${i},'total',this.value)"></div>
-                </div>
-                <div class="rv-row">
-                    <select id="rv-cat-${i}" onchange="rvSet(${i},'category',this.value)">${catOpts(it.category)}</select>
-                    <button type="button" class="action-btn delete-btn" onclick="rvRemove(${i})">🗑️</button>
-                </div>
-            </div>`).join('');
+        let html = `<h3>🔎 Toplu Çek Yoxlanışı (${pendingReceipts.length} çek)</h3>`;
+        
+        pendingReceipts.forEach((r, rIdx) => {
+            const expCatOpts = [...document.querySelectorAll('#exp-category option')].map(o => `<option value="${esc(o.value)}" ${o.value === r.expCategory ? 'selected' : ''}>${esc(o.value)}</option>`).join('');
+            const payOpts = [...document.querySelectorAll('#exp-pay option')].map(o => `<option value="${esc(o.value)}" ${o.value === r.pay ? 'selected' : ''}>${esc(o.value)}</option>`).join('');
+            const catOpts = sel => ALL_CATEGORIES.map(c => `<option value="${esc(c)}" ${c === sel ? 'selected' : ''}>${esc(c)}</option>`).join('');
+
+            const rows = r.items.map((it, i) => `
+                <div class="rv-item">
+                    <input type="text" value="${esc(it.name)}" placeholder="Məhsulun adı" onchange="rvSet(${rIdx},${i},'name',this.value)">
+                    <div class="rv-grid">
+                        <div><label>Say</label><input type="text" inputmode="decimal" value="${fmtQty(it.qty)}" onchange="rvSet(${rIdx},${i},'qty',this.value)"></div>
+                        <div><label>Qiymət</label><input type="text" inputmode="decimal" value="${fmt(it.unitPrice)}" onchange="rvSet(${rIdx},${i},'unitPrice',this.value)"></div>
+                        <div><label>Cəmi</label><input type="text" inputmode="decimal" id="rv-total-${rIdx}-${i}" value="${fmt(it.total)}" onchange="rvSet(${rIdx},${i},'total',this.value)"></div>
+                    </div>
+                    <div class="rv-row">
+                        <select id="rv-cat-${rIdx}-${i}" onchange="rvSet(${rIdx},${i},'category',this.value)">${catOpts(it.category)}</select>
+                        <button type="button" class="action-btn delete-btn" onclick="rvRemove(${rIdx},${i})">🗑️</button>
+                    </div>
+                </div>`).join('');
+
+            html += `
+            <div style="border:1.5px solid var(--border); padding:12px; border-radius:10px; margin-bottom:14px; background:#F8FAFC;">
+                <div style="font-weight:700; color:var(--primary-dark); margin-bottom:8px;">Çek #${rIdx + 1}: ${esc(r.store || 'Obyekt')}</div>
+                <div class="form-group"><label>📅 Tarix</label><input type="date" value="${esc(r.date)}" onchange="pendingReceipts[${rIdx}].date=this.value"></div>
+                <div class="form-group"><label>🏪 Obyekt</label><input type="text" value="${esc(r.store)}" onchange="pendingReceipts[${rIdx}].store=this.value"></div>
+                ${rows}
+                <button type="button" class="btn btn-outline" style="margin-bottom:8px;" onclick="rvAdd(${rIdx})">➕ Sətir əlavə et</button>
+                <div class="form-group"><label>💰 Çekin yekun cəmi (₼)</label><input type="text" inputmode="decimal" value="${fmt(r.total)}" onchange="pendingReceipts[${rIdx}].total=toNumSafe(this.value)"></div>
+                <div class="form-group"><label>💳 Ödəniş üsulu</label><select onchange="pendingReceipts[${rIdx}].pay=this.value">${payOpts}</select></div>
+                <div class="form-group"><label>🏷️ Kateqoriya</label><select onchange="pendingReceipts[${rIdx}].expCategory=this.value">${expCatOpts}</select></div>
+                <button type="button" class="action-btn delete-btn" style="margin-top:4px;" onclick="rvRemoveReceipt(${rIdx})">❌ Bu çeki siyahıdan sil</button>
+            </div>`;
+        });
+
+        html += `
+            <button type="button" class="btn" id="rv-confirm-all" onclick="confirmAllReceipts()">✅ Bütün Çekləri Təsdiqlə və Əlavə Et</button>
+            <button type="button" class="btn btn-cancel" style="display:block; background:#A0AEC0; margin-top:8px;" onclick="cancelReceipts()">İmtina</button>`;
 
         box.style.display = 'block';
-        box.innerHTML = `
-            <h3>🔎 Çeki yoxla və təsdiqlə</h3>
-            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;">
-                Çek avtomatik oxundu${r.store ? ` (${esc(r.store)}${r.receiptNo ? ' · № ' + esc(r.receiptNo) : ''})` : ''}. OCR səhv oxuya bilər, ona görə təsdiqləməzdən əvvəl rəqəmlərə baxın.
-                ${r.dateFound ? '' : '<br><strong style="color:var(--danger);">⚠️ Tarix oxunmadı, tarixi özünüz seçin.</strong>'}
-            </p>
-            <div class="form-group"><label>📅 Çekin tarixi (tarixçədə bu gün altında görünəcək)</label>
-                <input type="date" value="${esc(r.date)}" onchange="pendingReceipt.date=this.value"></div>
-            <div class="form-group"><label>🏪 Obyekt</label>
-                <input type="text" value="${esc(r.store)}" onchange="pendingReceipt.store=this.value"></div>
-            ${rows}
-            <button type="button" class="btn btn-outline" style="margin-bottom:12px;" onclick="rvAdd()">➕ Sətir əlavə et</button>
-            <div class="form-group"><label>💰 Çekin yekun cəmi (₼)</label>
-                <input type="text" inputmode="decimal" id="rv-total" value="${fmt(r.total)}" onchange="pendingReceipt.total=toNumSafe(this.value); rvSummary()"></div>
-            <div id="rv-summary" style="font-size:0.8rem; margin-bottom:12px;"></div>
-            <div class="form-group"><label>💳 Ödəniş üsulu</label>
-                <select onchange="pendingReceipt.pay=this.value">${payOpts}</select></div>
-            <div class="form-group"><label>🏷️ Tarixçədəki xərc kateqoriyası</label>
-                <select onchange="pendingReceipt.expCategory=this.value">${expCatOpts}</select></div>
-            <button type="button" class="btn" id="rv-confirm" onclick="confirmReceipt()">✅ Təsdiqlə və Əlavə Et</button>
-            <button type="button" class="btn" style="background:#A0AEC0; margin-top:8px;" onclick="cancelReceipt()">İmtina</button>`;
-        rvSummary();
+        box.innerHTML = html;
     }
 
-    window.rvSummary = function() {
-        if (!pendingReceipt) return;
-        const el = document.getElementById('rv-summary');
-        if (!el) return;
-        const sum = pendingReceipt.items.reduce((a, b) => a + (parseFloat(b.total) || 0), 0);
-        const diff = Math.abs(sum - pendingReceipt.total);
-        el.innerHTML = diff > 0.011
-            ? `<span style="color:var(--danger);">⚠️ Məhsulların cəmi ${sum.toFixed(2)} ₼, çekin cəmi ${pendingReceipt.total.toFixed(2)} ₼. Fərqi yoxlayın.</span>`
-            : `<span style="color:var(--success);">✔️ Məhsulların cəmi ${sum.toFixed(2)} ₼ çekin cəmi ilə üst-üstə düşür.</span>`;
-    };
-
-    window.rvSet = function(i, field, value) {
-        const it = pendingReceipt.items[i];
+    window.rvSet = function(rIdx, i, field, value) {
+        const it = pendingReceipts[rIdx].items[i];
         if (!it) return;
         if (field === 'name') {
             it.name = value.trim();
-            it.category = categorizeItem(it.name, pendingReceipt.store);
-            const sel = document.getElementById('rv-cat-' + i);
+            it.category = categorizeItem(it.name, pendingReceipts[rIdx].store);
+            const sel = document.getElementById(`rv-cat-${rIdx}-${i}`);
             if (sel) sel.value = it.category;
         } else if (field === 'category') {
             it.category = value;
@@ -752,94 +760,106 @@
             it[field] = toNumSafe(value);
             if (field === 'qty' || field === 'unitPrice') {
                 it.total = parseFloat((it.qty * it.unitPrice).toFixed(2));
-                const t = document.getElementById('rv-total-' + i);
+                const t = document.getElementById(`rv-total-${rIdx}-${i}`);
                 if (t) t.value = fmt(it.total);
             }
         }
-        rvSummary();
     };
 
-    window.rvRemove = function(i) {
-        pendingReceipt.items.splice(i, 1);
-        renderReview();
+    window.rvRemove = function(rIdx, i) {
+        pendingReceipts[rIdx].items.splice(i, 1);
+        renderReviewList();
     };
 
-    window.rvAdd = function() {
-        pendingReceipt.items.push({ name: '', unit: 'ədəd', qty: 1, unitPrice: 0, total: 0, category: isPharmacy(pendingReceipt.store) ? FALLBACK_PHARM : FALLBACK_FOOD });
-        renderReview();
+    window.rvAdd = function(rIdx) {
+        pendingReceipts[rIdx].items.push({ name: '', unit: 'ədəd', qty: 1, unitPrice: 0, total: 0, category: FALLBACK_FOOD });
+        renderReviewList();
     };
 
-    window.cancelReceipt = function() {
-        pendingReceipt = null;
+    window.rvRemoveReceipt = function(rIdx) {
+        pendingReceipts.splice(rIdx, 1);
+        renderReviewList();
+    };
+
+    window.cancelReceipts = function() {
+        pendingReceipts = [];
         document.getElementById('market-receipt-file').value = '';
-        renderReview();
+        renderReviewList();
     };
 
-    window.confirmReceipt = async function() {
-        const r = pendingReceipt;
-        if (!r) return;
-        const items = r.items.filter(it => (it.name || '').trim() && it.total > 0);
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(r.date)) { alert('Tarixi düzgün seçin.'); return; }
-        if (items.length === 0) { alert('Ən azı bir məhsul sətri doldurun.'); return; }
-        const total = r.total > 0 ? r.total : parseFloat(items.reduce((a, b) => a + b.total, 0).toFixed(2));
-        if (total <= 0) { alert('Çekin cəmini daxil edin.'); return; }
-
-        const btn = document.getElementById('rv-confirm');
+    window.confirmAllReceipts = async function() {
+        if (pendingReceipts.length === 0) return;
+        const btn = document.getElementById('rv-confirm-all');
         btn.disabled = true;
         btn.innerText = 'Saxlanılır...';
-        const ymKey = r.date.substring(0, 7);
-        const expData = {
-            date: r.date,
-            monthKey: ymKey,
-            person: r.person,
-            amount: total,
-            category: r.expCategory,
-            pay: r.pay,
-            note: `🧾 ${r.store || 'Çek'}${r.receiptNo ? ' №' + r.receiptNo : ''} (${items.length} məhsul)`,
-            receipt: {
-                hash: r.hash || '',
-                fiscalId: r.fiscalId || '',
-                receiptNo: r.receiptNo || '',
-                store: r.store || '',
-                time: r.time || '',
-                items: items.map(it => ({
-                    name: it.name.trim(),
-                    unit: it.unit || 'ədəd',
-                    qty: it.qty,
-                    unitPrice: it.unitPrice,
-                    total: it.total,
-                    category: it.category
-                }))
-            },
-            createdBy: currentUser ? currentUser.email : 'Naməlum',
-            createdAt: Date.now()
-        };
-        try {
-            await addDoc(collection(db, "expenses"), expData);
-            window.selectedYearMonth = ymKey;
-            pendingReceipt = null;
-            document.getElementById('market-receipt-file').value = '';
-            loadCurrentMonthBudgetToUI();
-            renderAll();
-            
-            // Tarixçə tabına keçid və səhifənin həmin günə/ən aşağı hissəyə fokuslanması
-            switchTab('history', document.querySelectorAll('.nav-item')[4]);
-            setTimeout(() => {
-                const dayCard = document.querySelector(`.history-day-card[data-date="${r.date}"]`);
-                if (dayCard) {
-                    dayCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    dayCard.style.transition = 'background 0.3s';
-                    dayCard.style.background = '#EBF8FF';
-                    setTimeout(() => dayCard.style.background = '#FFF', 1500);
-                }
-            }, 300);
 
-            alert(`✅ Çek əlavə edildi: ${total.toFixed(2)} ₼ (${r.date}). Tarixçədə həmin tarixin altında göstərildi.`);
+        try {
+            for (const r of pendingReceipts) {
+                const items = r.items.filter(it => (it.name || '').trim() && it.total > 0);
+                if (items.length === 0) continue;
+                const total = r.total > 0 ? r.total : parseFloat(items.reduce((a, b) => a + b.total, 0).toFixed(2));
+                if (total <= 0) continue;
+
+                const ymKey = r.date.substring(0, 7);
+                const expData = {
+                    date: r.date,
+                    monthKey: ymKey,
+                    person: r.person,
+                    amount: total,
+                    category: r.expCategory,
+                    pay: r.pay,
+                    note: `🧾 ${r.store || 'Çek'}${r.receiptNo ? ' №' + r.receiptNo : ''} (${items.length} məhsul)`,
+                    receipt: {
+                        hash: r.hash || '',
+                        fiscalId: r.fiscalId || '',
+                        receiptNo: r.receiptNo || '',
+                        store: r.store || '',
+                        time: r.time || '',
+                        items: items.map(it => ({
+                            name: it.name.trim(),
+                            unit: it.unit || 'ədəd',
+                            qty: it.qty,
+                            unitPrice: it.unitPrice,
+                            total: it.total,
+                            category: it.category
+                        }))
+                    },
+                    createdBy: currentUser ? currentUser.email : 'Naməlum',
+                    createdAt: Date.now()
+                };
+                await addDoc(collection(db, "expenses"), expData);
+            }
+
+            pendingReceipts = [];
+            document.getElementById('market-receipt-file').value = '';
+            renderReviewList();
+            renderAll();
+            alert('✅ Bütün çeklər uğurla əlavə edildi!');
+            switchTab('history', document.querySelectorAll('.nav-item')[4]);
         } catch (err) {
             alert('Xəta: ' + err.message);
             btn.disabled = false;
-            btn.innerText = '✅ Təsdiqlə və Əlavə Et';
+            btn.innerText = '✅ Bütün Çekləri Təsdiqlə və Əlavə Et';
         }
+    };
+
+    // Məhsul Detalları Modalını Açmaq
+    window.showProductDetails = function(name, unit, qty, unitPrice, total, category, store, date) {
+        const modalContent = document.getElementById('modal-product-content');
+        modalContent.innerHTML = `
+            <p><strong>🛍️ Məhsul:</strong> ${esc(name)}</p>
+            <p><strong>📦 Miqdar / Çəki:</strong> ${fmtQty(qty)} ${esc(unit || 'ədəd')}</p>
+            <p><strong>💵 Vahid Qiymət:</strong> ${fmt(unitPrice)} ₼</p>
+            <p><strong>💰 Ümumi Cəmi:</strong> <span style="color:var(--danger); font-weight:bold;">${fmt(total)} ₼</span></p>
+            <p><strong>🏷️ Kateqoriya:</strong> ${esc(category)}</p>
+            <p><strong>🏪 Obyekt:</strong> ${esc(store || '—')}</p>
+            <p><strong>📅 Tarix:</strong> ${esc(date || '—')}</p>
+        `;
+        document.getElementById('product-modal').style.display = 'flex';
+    };
+
+    window.closeProductModal = function() {
+        document.getElementById('product-modal').style.display = 'none';
     };
 
     function monthReceipts() {
@@ -984,7 +1004,6 @@
             window.selectedYearMonth = yearMonthKey;
             window.resetForm();
 
-            // Yeni xərc əlavə olunduqda tarixçəyə keçib həmin günü göstərmək
             switchTab('history', document.querySelectorAll('.nav-item')[4]);
             setTimeout(() => {
                 const dayCard = document.querySelector(`.history-day-card[data-date="${selectedDate}"]`);
@@ -1251,11 +1270,17 @@
                 const sub = groups[c].reduce((a, b) => a + (parseFloat(b.total) || 0), 0);
                 let rowsHtml = '';
                 groups[c].forEach(it => {
+                    const safeName = esc(it.name).replace(/'/g, "\\'");
+                    const safeUnit = esc(it.unit || 'ədəd').replace(/'/g, "\\'");
+                    const safeCat = esc(c).replace(/'/g, "\\'");
+                    const safeStore = esc(rc.store || '').replace(/'/g, "\\'");
+                    const safeDate = esc(x.date || '').replace(/'/g, "\\'");
+
                     rowsHtml += `
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; font-size:0.8rem; padding:6px 0; border-bottom:1px dotted #EDF2F7;">
+                    <div class="market-item-row" onclick="showProductDetails('${safeName}', '${safeUnit}', ${it.qty}, ${it.unitPrice}, ${it.total}, '${safeCat}', '${safeStore}', '${safeDate}')" style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; font-size:0.8rem; padding:6px 0; border-bottom:1px dotted #EDF2F7;">
                         <div style="flex:1;">
-                            <strong>${esc(it.name)}</strong>
-                            <div style="font-size:0.74rem; color:var(--text-muted);">${fmtQty(it.qty)} ${esc(it.unit || 'ədəd')} × ${fmt(it.unitPrice)} ₼</div>
+                            <strong>🏷️ ${esc(it.name)}</strong>
+                            <div style="font-size:0.74rem; color:var(--text-muted);">${fmtQty(it.qty)} ${esc(it.unit || 'ədəd')} × ${fmt(it.unitPrice)} ₼ (Detallar üçün kliklə)</div>
                         </div>
                         <strong style="color:var(--danger); white-space:nowrap;">${fmt(it.total)} ₼</strong>
                     </div>`;
