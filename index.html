@@ -485,21 +485,39 @@
     const normTxt = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[əƏ]/g, 'E').replace(/ı/g, 'I').toUpperCase();
 
     const CATEGORY_RULES = [
+        ['🏥 Klinika və Xidmət', /KLINIKA|CLINIC|XESTEXANA|HOSPITAL|BONA DEA|LABORATORIYA/],
         ['💊 Dərmanlar', /GELMIZOL|MICROLAN|ENEMA|TABLET|KAPSUL|\d\s*MG\b|\bMG\b|SIROP|DAMCI|MERHEM|MALHAM|AMPULA|SPREY|SUPPOZITOR|PARASETAMOL|ASPIRIN|IBUPROFEN|NO-?SPA|ANALGIN|NUROFEN|PANADOL|ANTIBIOTIK|AMOKSI|LOPERAMID|SMEKTA/],
         ['🌿 Vitamin və Əlavələr', /VITAMIN|OMEGA|KALSIUM|MAGNEZIUM|\bZINC\b|TIKVENNOE|BALIQ YAGI|PROBIOTIK/],
         ['🩹 Tibbi ləvazimat', /SPRIS|SHPRIS|SPRITS|BINT|PAMBIQ|MASKA|ELDIVEN|PLASTIR|TERMOMETR|TONOMETR|SPIRT/],
         ['📦 Qablaşdırma / Paket', /KLOK|ZEFERAN|LDPE|PAKET|QUTU|TORBA|\bBAG\b/],
-        ['🥛 Süd məhsulları', /\bSUD|\bSUT\b|XAMA|PENDIR|YOQURT|QAYMAQ|KEFIR|AYRAN|KERE YAG/],
-        ['🥩 Ət, Balıq, Yumurta', /TOYUQ|\bET\b|KOLBASA|SOSISKA|BALIQ|YUMURTA|\bDANA\b|QOYUN|SUCUK|FARS/],
-        ['🍎 Meyvə və Tərəvəz', /MANDARIN|BANAN|\bALMA\b|XIYAR|POMIDOR|KARTOF|SOGAN|LIMON|PORTAL|UZUM|GILAS|ARMUD|NAR\b|YASIL|BIBER|BADIMCAN|KELEM|HAVUC/],
-        ['🍞 Çörək və Un məmulatı', /COREK|CORAK|MAKARON|\bUN\b|KEKS|PECENYE|\bTORT|BULKA|LAVASH|TANDIR|LAPSA/],
-        ['🍬 Şirniyyat və Qəlyanaltı', /SOKOLAD|SIRNIYYAT|KONFET|CIPS|CHIPS|DONDURMA|QOZ\b|FINDIQ|HALVA|MURREBE|BAL\b/],
-        ['☕ Çay, Qəhvə, İçkilər', /\bCAY\b|COFFEE|KOFE|\bSU\b|SUYU|\bSOK\b|COCA|PEPSI|FANTA|LIMONAD|MINERAL|NESCAFE|KOLA\b/],
-        ['🧴 Məişət və Gigiyena', /SABUN|SAMPUN|TUALET|KAGIZ|POROSOK|FAIRY|ARIEL|\bTIDE\b|MENDIL|SALFET|XLOR|DIS PASTA|DEZODORANT|PAMPERS/],
-        ['🛢️ Yağ və Bakaleya', /MASLO|\bYAG\b|\bDUZ\b|SEKER|ARPA|PIRINC|QARABASDI|UNLU|ZEYTUN|KETCHUP|MAYONEZ/]
+        ['🫧 Saqqız', /SAQQIZ|SAKQIZ|SAKIZ|ORBIT|DIROL|HUBBA|BUBBLE|\bGUM\b/],
+        ['🍱 Food / Hazır yemək', /AZCAKE|CUDU|CHUDU|QOGAL|PIROJKI|\bPIDE\b|PIZZA|BURGER|SHAURMA|DONER|LAHMACUN/],
+        ['👶 Uşaq məhsulları', /USAQ|NUTRILON|\bNAN\b|BEBI|BABY|PAMPERS|PODGUZNIK|PYURE|HIPP|\bAGU\b/],
+        ['🐾 Heyvan yemi', /WHISKAS|PEDIGREE|FELIX|PISIK|\bIT YEMI|KITEKAT|\bYEM\b/],
+        ['🚬 Tütün', /SIQARET|MARLBORO|PARLIAMENT|WINSTON|\bKENT\b|CAMEL|TUTUN|\bLD\b|\bROTHMANS/],
+        ['🥛 Süd məhsulları', /\bSUD|\bSUT\b|SUTLU|XAMA|PENDIR|PANIR|YOQURT|QAYMAQ|KEFIR|AYRAN|KERE YAG|SMETANA|TVOROQ|DOVGA|KATIQ/],
+        ['🥚 Yumurta', /YUMURTA/],
+        ['🥤 Su və İçkilər', /\bSU\b|SUYU|\bSOK\b|COCA|PEPSI|FANTA|SPRITE|LIMONAD|MINERAL|BORJOMI|BADAMLI|SIRAB|ENERJI|ENERGY|RED BULL|\bKOLA\b|PIVE|\bPIVA\b|SERAB|VODKA|KONYAK|SAMPAN|\bNEKTAR|MORS\b|KOMPOT|IC TEA|ICE TEA/],
+        ['🍬 Şirniyyat və Qəlyanaltı', /PUDING|PRYANIK|SIRNIYYAT|KONFET|CIPS|CHIPS|\bHALVA\b|PECENYE|KEKS|QURABIYYE|PAXLAVA|KRAKER|MARSHMALLOW|ZEFIR|\bBAL\b|\bTORT|DRAJE|LOLLIPOP|SUSKA|POPCORN|QARGIDALI/],
+        ['☕ Çay və Qəhvə', /\bCAY\b|COFFEE|KOFE|NESCAFE|KAKAO TOZ|KAKAO ICKI|NESQUIK|QAHVE|KAPUCINO|AKBAR|AHMAD|LIPTON|\bTEA\b|ALOKOZAY/],
+        ['🍫 Şokolad', /SOKOLAD|NESTLE|OREX|ROSHEN|WAFER|VAFLI|VAFLA|ALPEN|MILKA|KINDER|SNICKERS|TWIX|BOUNTY|\bMARS\b|NUTELLA|NUTELA|KITKAT|FERRERO|RAFFAELLO/],
+        ['🥩 Ət və Quş əti', /TOYUQ|BROYLER|\bET\b|\bETI\b|\bDANA\b|QOYUN|KOLBASA|SOSISKA|SUCUK|FARS|BASTURMA|KABAB|CIGER|KOTLET|BUD\b|QANAD|ZIRVEL/],
+        ['🐟 Balıq və Dəniz məhsulları', /BALIQ|SELEDKA|TUNEC|SKUMBRIYA|KREVET|ISTIRIDYE|KAVIAR|QIZILBALIQ|SOMON|KILKA|SARDIN|SPROT/],
+        ['🧊 Dondurulmuş və Dondurma', /DONDURMA|DONDURULMUS|DONDURULM|PELMEN|ICE CREAM|MANTI|BEREK|SAMSA/],
+        ['🧂 Ədviyyat', /EDVIYYAT|QARA BIBER|QIRMIZI BIBER|\bZIRE\b|SUMAQ|TURMERIC|DARCIN|KARRI|QARANFIL|ZENCEFIL|\bKERI\b|DEMLENMIS|REYHAN QURU|KAKOTU/],
+        ['🛢️ Yağ və Souslar', /MASLO|\bYAG\b|\bYAGI\b|KETCHUP|KETCUP|MAYONEZ|SOUS|HARDAL|SIRKE|TOMAT PASTA|ADJIKA|ADZIKA|ALCA PASTA|NARSHARAB/],
+        ['🥫 Konserv və Hazır məhsullar', /KONSERV|TURSU|MURREBE|\bJEM\b|DZEM|\bPASTET|HUMUS|ZEYTUN|ZEYTUNLAR|BEL LOBYA|YASIL NOXUD|QARGIDALI KONSERV|SALAT/],
+        ['🥜 Quru meyvə və Qoz-fındıq', /\bQOZ\b|FINDIQ|BADAM\b|PISTE|KISMIS|QURU ALU|QURU MEYVE|QURU ENJIR|KESYU|ARAXIS|SUSAM|TOXUM|KURAGA|ERIK QURU/],
+        ['🍎 Meyvə və Tərəvəz', /XIYAR|POMIDOR|KARTOF|KARTOS|SOGAN|SARIMSAQ|BIBER|BADIMCAN|KELEM|HAVUC|\bKOK\b|TURP|KOKAT|ISPANAQ|ZIRING|BALQABAQ|YASILLIQ|DERMENE|\bNANE\b|SOYUD|GOYERTI|KAHI|BROKOLI|KABACKI|KABACHKI|CHUGUNDUR|CUGUNDUR|CUQUNDUR|\bMVT\b|MANDARIN|BANAN|\bALMA\b|LIMON|PORTAL|UZUM|GILAS|ARMUD|\bNAR\b|NARINC|\bERIK\b|SEFTALI|QARPIZ|YEMIS|INCIL|AVOKADO|KIVI|ANANAS|XURMA|ANAR|ALCA|\bDUT\b|NEKTARIN|QREYPFRUT|MEYVE|TEREVEZ/],
+        ['🫘 Paxlalılar', /MERCI|NOXUD|LOBYA|QARABAS|\bMASH\b|PAXLA|FASULYE/],
+        ['🍞 Çörək və Un məmulatı', /COREK|COREY|CORAK|BULKA|LAVASH|TANDIR|TENDIR|BATON|KRUASAN|SIMIT|BAKERY|SENDVIC|SANDWICH|SANDVIC|XONCA|XAMIR|LAPSA|\bPITA\b|YUXA|KULCE|COVDAR|BAGET|\bTOST\b/],
+        ['🍚 Taxıl və Bakaleya', /MAKARON|SPAGETTI|\bUN\b|\bUNU\b|PIRINC|\bRIS\b|\bDUYU\b|GRECKA|GREKA|\bARPA\b|BUGDA|YARMA|MANNIY|OVSYANKA|FLAKES|SEKER|SAHAR|\bDUZ\b|\bSOL\b|KRAXMAL|\bMAYA\b|\bSODA\b|VANIL|PUDRA|BASMATI/],
+        ['🧼 Şəxsi baxım', /DISH?\s*FIRCA|DISH?\s*PASTA|COLGATE|ORAL-?B|SENSODYNE|PARODONTAX|SABUN|SAMPUN|DEZODORANT|TUALET|KAGIZ|MENDIL|SALFET|USTURA|KREM\b|GIGIYEN|GIGIENIK|KONDISIONER|LOSYON|PARFUM/],
+        ['🧴 Məişət kimyəvisi', /FAIRY|ARIEL|\bTIDE\b|POROSOK|XLOR|DOMESTOS|YUYUCU|QAB YUYAN|BULASIQ|PERSIL|PROPER|TEMIZLEYICI|COP TORBA/],
+        ['🏠 Ev və Məişət əşyaları', /SUNGER|SPONC|BATAREYA|BATTERY|LAMPA|CAKMAQ|CAKMAK|STAKAN|BOSQAB|QASIQ|BICAQ|SUPURGE|SIRINKA|DESTMAL|\bSIM\b/]
     ];
     const FALLBACK_PHARM = '💊 Digər aptek məhsulları';
-    const FALLBACK_FOOD = '📦 Digər Ərzaqlar';
+    const FALLBACK_FOOD = '📦 Digər məhsullar';
     const ALL_CATEGORIES = [...CATEGORY_RULES.map(r => r[0]), FALLBACK_PHARM, FALLBACK_FOOD];
     const isPharmacy = store => /APTEK|ECZA|PHARM/.test(normTxt(store));
 
@@ -511,6 +529,13 @@
         return isPharmacy(store) ? FALLBACK_PHARM : FALLBACK_FOOD;
     }
 
+    // Saxlanmış mal kateqoriyası köhnədirsə (artıq mövcud deyilsə) və ya "Digər"dirsə, yeni qaydalarla yenidən təyin edilir
+    function recat(it, store) {
+        const c = it.category;
+        if (!c || !ALL_CATEGORIES.includes(c) || c === FALLBACK_FOOD || c === FALLBACK_PHARM) return categorizeItem(it.name, store);
+        return c;
+    }
+
     function pickExpenseCategory(items, store) {
         if (isPharmacy(store)) return '💊 Aptek';
         const pharmCats = ['💊', '🌿', '🩹'];
@@ -519,6 +544,8 @@
             total += it.total;
             if (pharmCats.some(p => (it.category || '').startsWith(p))) pharm += it.total;
         });
+        const clinic = items.reduce((a, it) => a + ((it.category || '').startsWith('🏥') ? it.total : 0), 0);
+        if (total > 0 && clinic / total >= 0.5) return '🏥 Hospital';
         return (total > 0 && pharm / total >= 0.5) ? '💊 Aptek' : '🛒 Ərzaq / Market';
     }
 
@@ -893,7 +920,7 @@
         recs.forEach(x => {
             if (x.receipt && Array.isArray(x.receipt.items)) {
                 x.receipt.items.forEach(it => {
-                    const c = it.category || FALLBACK_FOOD;
+                    const c = recat(it, x.receipt.store);
                     if (c === categoryName) {
                         catItems.push({
                             ...it,
@@ -1302,7 +1329,7 @@
         recs.forEach(x => {
             receiptsSum += parseFloat(x.amount) || 0;
             x.receipt.items.forEach(it => {
-                const c = it.category || FALLBACK_FOOD;
+                const c = recat(it, x.receipt.store);
                 if (!catTotals[c]) catTotals[c] = { total: 0, count: 0 };
                 catTotals[c].total += parseFloat(it.total) || 0;
                 catTotals[c].count += 1;
@@ -1338,7 +1365,7 @@
             const groups = {};
             const order = [];
             rc.items.forEach(it => {
-                const c = it.category || FALLBACK_FOOD;
+                const c = recat(it, rc.store);
                 if (!groups[c]) { groups[c] = []; order.push(c); }
                 groups[c].push(it);
             });
