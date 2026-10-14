@@ -976,14 +976,73 @@
         const recs = monthReceipts();
         const monthLabel = getMonthLabel(window.selectedYearMonth);
         if (recs.length === 0) { alert(`${monthLabel} üzrə çek yoxdur.`); return; }
-        if (!confirm(`${monthLabel} ayının ${recs.length} çekinin məhsul siyahısı silinsin?\n(Xərc məbləğləri tarixçədə qalacaq.)`)) return;
+        const sum = recs.reduce((a, x) => a + (parseFloat(x.amount) || 0), 0);
+        if (!confirm(`${monthLabel} ayının ${recs.length} çeki (cəmi ${sum.toFixed(2)} ₼) tarixçədən tamamilə silinsin?\n\nÇeklərin məhsul siyahısı və tarixçədəki xərc məbləğləri birlikdə silinəcək. Bu əməliyyatı geri qaytarmaq olmaz.`)) return;
         try {
             for (const x of recs) {
-                await updateDoc(doc(db, "expenses", x.id), { receipt: deleteField() });
+                await deleteDoc(doc(db, "expenses", x.id));
             }
+            alert(`🗑️ ${recs.length} çek tarixçədən silindi.`);
         } catch (err) {
             alert('Xəta: ' + err.message);
         }
+    };
+
+    // Malın çəkisi/həcmi: kq/l ilə satılırsa miqdardan, əks halda mal adından (125QR, 100ml və s.) götürülür
+    function extractWeight(it) {
+        const unit = String(it.unit || '').trim();
+        if (/^(kq|kg|l|lt|q|qr|gr|ml)$/i.test(unit)) return `${fmtQty(it.qty)} ${unit.toLowerCase()}`;
+        const m = normTxt(it.name).match(/(\d+(?:[.,]\d+)?)\s*(KQ|KG|QR|GR|ML|LT|MG|L|G)\b(?!\s*=)/);
+        return m ? `${m[1].replace(',', '.')} ${m[2].toLowerCase()}` : '—';
+    }
+
+    // Tarixçədə çekin üzərinə kliklədikdə həmin gün alınmış bütün malların siyahısı
+    window.showDayReceipts = function(date, clickedId) {
+        const dayRecs = expenses
+            .filter(x => x.date === date && x.receipt && Array.isArray(x.receipt.items))
+            .sort((a, b) => (a.id === clickedId ? -1 : b.id === clickedId ? 1 : (a.createdAt || 0) - (b.createdAt || 0)));
+        if (dayRecs.length === 0) return;
+
+        document.getElementById('modal-title').innerText = `🧾 ${date} — Alınan mallar`;
+        const dayTotal = dayRecs.reduce((a, x) => a + (parseFloat(x.amount) || 0), 0);
+        let html = `<div style="display:flex; justify-content:space-between; font-weight:700; margin-bottom:10px; color:var(--primary-dark);">
+            <span>${dayRecs.length} çek</span><span style="color:var(--danger);">Günün çek cəmi: ${dayTotal.toFixed(2)} ₼</span></div>`;
+
+        dayRecs.forEach(x => {
+            const rc = x.receipt;
+            let rows = '';
+            rc.items.forEach(it => {
+                rows += `
+                <div style="padding:8px 0; border-bottom:1px dotted #E2E8F0;">
+                    <div style="display:flex; justify-content:space-between; gap:8px;">
+                        <strong style="font-size:0.85rem;">🏷️ ${esc(it.name)}</strong>
+                        <strong style="color:var(--danger); white-space:nowrap;">${fmt(it.total)} ₼</strong>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; font-size:0.74rem; color:var(--text-muted); margin-top:4px;">
+                        <span>Say: <b style="color:var(--text);">${fmtQty(it.qty)} ${esc(it.unit || 'ədəd')}</b></span>
+                        <span>Çəki/həcm: <b style="color:var(--text);">${esc(extractWeight(it))}</b></span>
+                        <span>Qiymət: <b style="color:var(--text);">${fmt(it.unitPrice)} ₼</b></span>
+                    </div>
+                    <div style="font-size:0.7rem; color:#A0AEC0; margin-top:2px;">${esc(recat(it, rc.store))}</div>
+                </div>`;
+            });
+            html += `
+            <div style="margin-bottom:14px; border:1px solid var(--border); border-radius:10px; padding:10px; ${x.id === clickedId ? 'background:#F0FFF4;' : ''}">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; border-bottom:1px solid #E2E8F0; padding-bottom:6px;">
+                    <div>
+                        <div style="font-weight:700; color:var(--primary-dark);">🏪 ${esc(rc.store || 'Market / Obyekt')}</div>
+                        <div style="font-size:0.72rem; color:var(--text-muted);">${rc.time ? esc(rc.time) + ' · ' : ''}${rc.receiptNo ? 'Çek № ' + esc(rc.receiptNo) + ' · ' : ''}${esc(x.person)} · ${rc.items.length} məhsul</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.68rem; color:var(--text-muted);">Çekin cəmi</div>
+                        <div style="font-weight:800; color:var(--danger);">${fmt(x.amount)} ₼</div>
+                    </div>
+                </div>
+                ${rows}
+            </div>`;
+        });
+        document.getElementById('modal-product-content').innerHTML = html;
+        document.getElementById('product-modal').style.display = 'flex';
     };
 
     const formInputs = document.querySelectorAll('#expense-form input, #expense-form select');
@@ -1471,15 +1530,17 @@
             let itemsHtml = '';
             sortedItems.forEach(x => {
                 const amt = (parseFloat(x.amount) || 0).toFixed(2);
+                const hasReceipt = !!(x.receipt && Array.isArray(x.receipt.items) && x.receipt.items.length);
                 itemsHtml += `
                 <div class="history-item ${isHistoryUnlocked ? 'item-draggable-enabled' : ''}" draggable="${isHistoryUnlocked}" data-id="${x.id}">
                     <div style="flex: 1; display: flex; align-items: center;">
                         <span class="drag-handle" draggable="true">☰</span>
-                        <div style="flex: 1;">
+                        <div style="flex: 1;${hasReceipt ? ' cursor:pointer;' : ''}" ${hasReceipt ? `onclick="showDayReceipts('${x.date}', '${x.id}')"` : ''}>
                             <div><strong>${x.category}</strong> <span class="person-tag">${x.person}</span></div>
                             <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
                                 ${x.pay} ${x.note ? '| ' + x.note : ''} <br><small style="color:#A0AEC0;">Daxil edən: ${x.createdBy || 'Naməlum'}</small>
                             </div>
+                            ${hasReceipt ? '<div style="font-size:0.72rem; color:#319795; font-weight:700; margin-top:3px;">🧾 Alınan malların siyahısı üçün kliklə</div>' : ''}
                         </div>
                     </div>
                     <div style="text-align:right;">
